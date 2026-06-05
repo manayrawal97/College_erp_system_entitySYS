@@ -12,17 +12,5 @@ const pool = mysql.createPool({
     multipleStatements: true
 });
 
-const testConnection = async () => {
-    try{ 
-        const connection = await pool.getConnection();
-        console.log("✅ Database connection successful");
-        connection.release();
-    } catch (error) {
-        console.error("Database connection failed:", error);
-        process.exit(1);
-    }
-};
-
-testConnection();
-
+// Removed auto-running testConnection to allow dbInit to create the database first.
 module.exports = pool;
