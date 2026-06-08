@@ -1,0 +1,39 @@
+
+Week 3 — React frontend + login UI
+Weeks 4–6 — Dashboards, attendance, grades
+Week 7 — Socket.io added to the already-working system
+
+
+
+
+Admin-------------
+{
+  "email": "admin@gmail.com",
+  "password": "Admin@123",
+  "role": "admin",
+  "full_name": "System Administrator",
+  "phone": "9876543210"
+}
+
+Faculty------------
+{
+  "email": "faculty1@gmail.com",
+  "password": "Faculty@123",
+  "department": "CSE",
+  "role": "faculty",
+  "full_name": "Dr. Rajesh Kumar",
+  "phone": "9876543211"
+}
+
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzgwOTI0MTA5LCJleHAiOjE3ODEwMTA1MDl9.ujNBW95wKQ9S_di9yrhNoHtKUno3sjA8x3GpwEl-NjU
+
+
+student---------------
+{
+  "full_name": "Manay",
+  "email": "manay@gmail.com",
+  "password": "Manay123",
+  "role": "student",
+  "department": "CSE"
+}
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTI0NDE4LCJleHAiOjE3ODEwMTA4MTh9.zG6cWNU_9x0SDetKTt4IY_swGxJNwdGFORquqcEE3PI"

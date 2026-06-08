@@ -166,7 +166,8 @@ const startServer = async () => {
     connection.release();
 
     // 3. Start Listening
-    app.listen(PORT, () => {
+    // app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 EntitySYS server running on port ${PORT}`);
       console.log(`   Environment: ${process.env.NODE_ENV}`);
       console.log(`   Health check: http://localhost:${PORT}/api/health`);

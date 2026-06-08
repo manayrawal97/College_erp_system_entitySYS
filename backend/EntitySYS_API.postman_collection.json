@@ -1,0 +1,700 @@
+{
+  "info": {
+    "name": "EntitySYS API",
+    "description": "Complete API collection for EntitySYS Enterprise Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",       "value": "http://localhost:5000/api" },
+    { "key": "admin_token",    "value": "" },
+    { "key": "faculty_token",  "value": "" },
+    { "key": "student_token",  "value": "" }
+  ],
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newstudent@test.com\",\n  \"password\": \"Student@123\",\n  \"role\": \"student\",\n  \"full_name\": \"New Student\",\n  \"phone\": \"9999999999\",\n  \"department\": \"CSE\",\n  \"current_semester\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Faculty",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newfaculty@test.com\",\n  \"password\": \"Faculty@123\",\n  \"role\": \"faculty\",\n  \"full_name\": \"New Faculty\",\n  \"department\": \"CSE\",\n  \"sub_role\": \"Lecturer\",\n  \"qualification\": \"M.Tech\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  pm.collectionVariables.set('admin_token', json.token);",
+                "  console.log('Admin token saved');",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@entitysys.com\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Faculty",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  pm.collectionVariables.set('faculty_token', json.token);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"prof.sharma@entitysys.com\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Student",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const json = pm.response.json();",
+                "  pm.collectionVariables.set('student_token', json.token);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@student.com\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Me (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/change-password",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{student_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"Student@123\",\n  \"new_password\": \"NewPass@456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "👥 Users",
+      "item": [
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users?page=1&limit=10",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "role", "value": "student", "disabled": true },
+                { "key": "department", "value": "CSE", "disabled": true },
+                { "key": "search", "value": "alice", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Get Users (Faculty - sees only their students)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users",
+            "header": [{ "key": "Authorization", "value": "Bearer {{faculty_token}}" }]
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/4",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Create User (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/users",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"created@student.com\",\n  \"password\": \"Test@1234\",\n  \"role\": \"student\",\n  \"full_name\": \"Created Student\",\n  \"department\": \"EE\",\n  \"current_semester\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/users/4",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Alice Johnson Updated\",\n  \"phone\": \"8888888888\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deactivate User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/users/7",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Faculty Students List",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/2/students",
+            "header": [{ "key": "Authorization", "value": "Bearer {{faculty_token}}" }]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📚 Courses",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/courses?page=1&limit=10",
+              "query": [
+                { "key": "department", "value": "CSE", "disabled": true },
+                { "key": "semester", "value": "3", "disabled": true },
+                { "key": "search", "value": "data", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Get Course by ID (with students)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/courses/1",
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "Create Course (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/courses",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_code\": \"CS401\",\n  \"course_name\": \"Software Engineering\",\n  \"department\": \"CSE\",\n  \"semester\": 4,\n  \"credits\": 4,\n  \"description\": \"Software development lifecycle and best practices\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Course (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/courses/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_name\": \"Data Structures & Algorithms - Advanced\",\n  \"credits\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Faculty to Course",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/courses/5/assign-faculty",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faculty_id\": 2,\n  \"section\": \"B\",\n  \"academic_year\": \"2024-2025\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Enroll Student in Course",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/courses/4/enroll",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "Faculty's Assigned Courses",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/faculty/2/courses",
+            "header": [{ "key": "Authorization", "value": "Bearer {{faculty_token}}" }]
+          }
+        },
+        {
+          "name": "Delete Course (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/courses/5",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📋 Attendance",
+      "item": [
+        {
+          "name": "Mark Attendance (Faculty)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/attendance/mark",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{faculty_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"date\": \"2024-12-15\",\n  \"records\": [\n    { \"student_id\": 4, \"status\": \"present\", \"remarks\": \"\" },\n    { \"student_id\": 5, \"status\": \"absent\",  \"remarks\": \"No information\" }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Student Attendance (own)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/attendance/student/4?course_id=1",
+              "query": [
+                { "key": "course_id", "value": "1", "disabled": true },
+                { "key": "from_date", "value": "2024-01-01", "disabled": true },
+                { "key": "to_date",   "value": "2024-12-31", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "Course Attendance (Faculty)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/attendance/course/1?date=2024-12-15",
+              "query": [
+                { "key": "date", "value": "2024-12-15" },
+                { "key": "from_date", "value": "2024-12-01", "disabled": true },
+                { "key": "to_date",   "value": "2024-12-31", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{faculty_token}}" }]
+          }
+        },
+        {
+          "name": "Update Attendance Record",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/attendance/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{faculty_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"late\",\n  \"remarks\": \"Arrived 10 minutes late\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Grades & Exams",
+      "item": [
+        {
+          "name": "Create Exam (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/grades/exams",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"exam_name\": \"Mid Semester Examination\",\n  \"exam_date\": \"2024-12-20\",\n  \"total_marks\": 50,\n  \"exam_type\": \"midterm\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Exams",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/grades/exams?course_id=1",
+              "query": [{ "key": "course_id", "value": "1" }]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "Enter Grades (Faculty)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/grades/enter",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{faculty_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exam_id\": 1,\n  \"grades\": [\n    { \"student_id\": 4, \"marks_obtained\": 42 },\n    { \"student_id\": 5, \"marks_obtained\": 38 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Student Grades (own)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/grades/student/4",
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "Course Grades (Faculty)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/grades/course/1",
+            "header": [{ "key": "Authorization", "value": "Bearer {{faculty_token}}" }]
+          }
+        },
+        {
+          "name": "Update Grade",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/grades/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{faculty_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks_obtained\": 45\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💰 Fees",
+      "item": [
+        {
+          "name": "Pay Exam Fee (Student)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/fees/pay",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{student_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fee_type\": \"exam\",\n  \"exam_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Student Payment History",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/fees/student/4",
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "All Transactions (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/fees/transactions?status=paid&page=1",
+              "query": [
+                { "key": "status",    "value": "paid" },
+                { "key": "fee_type",  "value": "exam",       "disabled": true },
+                { "key": "from_date", "value": "2024-01-01", "disabled": true },
+                { "key": "to_date",   "value": "2024-12-31", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        },
+        {
+          "name": "Generate Receipt",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/fees/generate-receipt",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{student_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Transaction Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/fees/transactions/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paid\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📢 Notices (Real-Time)",
+      "item": [
+        {
+          "name": "Get Notices (Student)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/notices?archived=0&page=1",
+              "query": [
+                { "key": "archived",   "value": "0" },
+                { "key": "course_id",  "value": "1", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{student_token}}" }]
+          }
+        },
+        {
+          "name": "Post College-Wide Notice (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/notices",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Holiday Announcement\",\n  \"content\": \"The college will remain closed on December 25th for Christmas. Wishing everyone a Merry Christmas!\",\n  \"target_role\": \"all\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Post Course Notice (Faculty)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/notices",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{faculty_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Assignment Deadline Extended\",\n  \"content\": \"The CS301 assignment deadline has been extended to December 22nd. Please submit before midnight.\",\n  \"target_role\": \"student\",\n  \"target_course_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Archive Notice (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/notices/1",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_archived\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Notice",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/notices/1",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }]
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📈 Reports",
+      "item": [
+        {
+          "name": "Attendance Report",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/reports/attendance",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"from_date\": \"2024-01-01\",\n  \"to_date\": \"2024-12-31\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Grades Report",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/reports/grades",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"exam_type\": \"midterm\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Fees Report (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/reports/fees",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2024-01-01\",\n  \"to_date\": \"2024-12-31\",\n  \"status\": \"paid\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Generate Admit Card (Student)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/reports/admit-card/generate",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{student_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exam_id\": 1\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏥 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    }
+
+  ]
+}
