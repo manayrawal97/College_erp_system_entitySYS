@@ -1,0 +1,14 @@
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 13, 26, 0.55);
+    z-index: 99;
+    animation: fadeIn 0.2s ease;
+  }
+}

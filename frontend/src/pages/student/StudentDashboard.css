@@ -1,0 +1,127 @@
+.student-dashboard { max-width: 1300px; }
+
+.student-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.student-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+.student-card { overflow: hidden; }
+.student-card--full { grid-column: 1 / -1; }
+
+/* Course list */
+.course-list { display: flex; flex-direction: column; }
+.course-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background var(--transition-fast);
+}
+.course-list-item:last-child { border-bottom: none; }
+.course-list-item:hover { background: var(--navy-50); }
+
+.course-badge-code {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.course-info { flex: 1; min-width: 0; }
+.course-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.course-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.course-att-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+.course-att-pct.low { color: var(--color-danger); }
+
+/* Grades list */
+.grades-list { display: flex; flex-direction: column; }
+.grade-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background var(--transition-fast);
+}
+.grade-list-item:last-child { border-bottom: none; }
+.grade-list-item:hover { background: var(--navy-50); }
+
+.grade-info { flex: 1; min-width: 0; }
+.grade-exam { font-size: 13px; font-weight: 600; color: var(--color-text); }
+.grade-course { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
+.grade-date { font-size: 11px; color: var(--color-text-light); margin-top: 2px; }
+
+.grade-score-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.grade-letter {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+.grade-a  { color: var(--color-success); }
+.grade-b  { color: var(--color-primary); }
+.grade-f  { color: var(--color-danger); }
+.grade-marks { font-size: 11px; color: var(--color-text-muted); }
+
+/* Attendance bars */
+.attendance-bars { display: flex; flex-direction: column; gap: 14px; }
+.att-bar-row { display: grid; grid-template-columns: 180px 1fr 50px; align-items: center; gap: 16px; }
+.att-bar-label { display: flex; flex-direction: column; gap: 2px; }
+.att-course-code { font-size: 12px; font-weight: 700; color: var(--color-text); }
+.att-course-name { font-size: 11px; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.att-bar-track {
+  height: 8px;
+  background: var(--navy-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.att-bar-fill {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.att-bar-fill.low { background: var(--color-danger); }
+.att-pct-label { font-size: 12px; font-weight: 700; color: var(--color-success); text-align: right; }
+.att-pct-label.low { color: var(--color-danger); }
+
+@media (max-width: 900px) {
+  .student-stats-grid { grid-template-columns: 1fr 1fr; }
+  .student-main-grid  { grid-template-columns: 1fr; }
+  .student-card--full { grid-column: auto; }
+}
+@media (max-width: 600px) {
+  .student-stats-grid { grid-template-columns: 1fr 1fr; }
+  .att-bar-row { grid-template-columns: 120px 1fr 44px; gap: 10px; }
+}
