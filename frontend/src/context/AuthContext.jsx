@@ -1,88 +1,81 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authService } from '../services/api';
+import { createContext, useState, useEffect, useContext } from 'react';
+import { authApi } from '../services/api';
+import { storage } from '../utils/storage';
+import toast from 'react-hot-toast';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-const TOKEN_KEY = 'entitysys_token';
-const USER_KEY  = 'entitysys_user';
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(() => {
-    try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
-  });
-  const [token,   setToken]   = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [loading, setLoading] = useState(true); // true until initial check done
-
-  // On mount: verify stored token is still valid
   useEffect(() => {
-    const verify = async () => {
-      if (!token) { setLoading(false); return; }
-      try {
-        const res = await authService.getMe();
-        setUser(res.data.user);
-        localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
-      } catch {
-        // Token invalid/expired — clear everything
-        clearAuth();
-      } finally {
-        setLoading(false);
+    const initAuth = async () => {
+      const token = storage.getToken();
+      if (token) {
+        try {
+          const response = await authApi.getMe();
+          setUser(response.data.user);
+        } catch (error) {
+          console.error('Auth initialization failed:', error);
+          storage.clear();
+        }
       }
+      setLoading(false);
     };
-    verify();
-  }, []); // eslint-disable-line
 
-  const saveAuth = (tokenVal, userData) => {
-    localStorage.setItem(TOKEN_KEY, tokenVal);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    setToken(tokenVal);
-    setUser(userData);
+    initAuth();
+  }, []);
+
+  const login = async (credentials) => {
+    try {
+      const response = await authApi.login(credentials);
+      const { token, user: userData } = response.data;
+      storage.setToken(token);
+      storage.setUser(userData);
+      setUser(userData);
+      toast.success('Login successful!');
+      return userData;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Login failed';
+      toast.error(message);
+      throw error;
+    }
   };
 
-  const clearAuth = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setToken(null);
+  const register = async (userData) => {
+    try {
+      const response = await authApi.register(userData);
+      const { token, user: registeredUser } = response.data;
+      storage.setToken(token);
+      storage.setUser(registeredUser);
+      setUser(registeredUser);
+      toast.success('Registration successful!');
+      return registeredUser;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    storage.clear();
     setUser(null);
-  }, []);
-
-  const login = async (email, password) => {
-    const res = await authService.login({ email, password });
-    const { token: t, user: u } = res.data;
-    saveAuth(t, u);
-    return u; // return user so caller can redirect by role
+    toast.success('Logged out successfully');
   };
-
-  const logout = useCallback(() => {
-    clearAuth();
-  }, [clearAuth]);
-
-  const updateUser = useCallback((updates) => {
-    setUser(prev => {
-      const updated = { ...prev, ...updates };
-      localStorage.setItem(USER_KEY, JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  // Convenience role checkers
-  const isAdmin   = user?.role === 'admin';
-  const isFaculty = user?.role === 'faculty';
-  const isStudent = user?.role === 'student';
 
   return (
-    <AuthContext.Provider value={{
-      user, token, loading,
-      login, logout, updateUser,
-      isAdmin, isFaculty, isStudent,
-      isAuthenticated: !!token && !!user,
-    }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
-  return ctx;
+export const useAuthContext = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuthContext must be used within an AuthProvider');
+  }
+  return context;
 };
