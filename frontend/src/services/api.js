@@ -32,9 +32,73 @@ export const authApi = {
   getMe: () => api.get('/auth/me'),
 };
 
+// Users endpoints
+export const usersApi = {
+  getAll: (params) => api.get('/users', { params }),
+  getById: (id) => api.get(`/users/${id}`),
+  create: (userData) => api.post('/users', userData),
+  update: (id, userData) => api.put(`/users/${id}`, userData),
+  delete: (id) => api.delete(`/users/${id}`),
+  getStudents: (params) => api.get('/users', { params: { ...params, role: 'student' } }),
+  getFaculty: (params) => api.get('/users', { params: { ...params, role: 'faculty' } }),
+};
+
+// Courses endpoints
+export const coursesApi = {
+  getAll: (params) => api.get('/courses', { params }),
+  getById: (id) => api.get(`/courses/${id}`),
+  create: (courseData) => api.post('/courses', courseData),
+  update: (id, courseData) => api.put(`/courses/${id}`, courseData),
+  delete: (id) => api.delete(`/courses/${id}`),
+  enrollStudent: (id, data) => api.post(`/courses/${id}/enroll`, data),
+  removeEnrollment: (id, data) => api.delete(`/courses/${id}/enroll`, { data }),
+  assignFaculty: (data) => api.post('/courses/assign', data),
+};
+
 // Notices endpoints
 export const noticesApi = {
-  getNotices: (params) => api.get('/notices', { params }),
+  getAll: (params) => api.get('/notices', { params }),
+  getById: (id) => api.get(`/notices/${id}`),
+  create: (noticeData) => api.post('/notices', noticeData),
+  update: (id, noticeData) => api.put(`/notices/${id}`, noticeData),
+  delete: (id) => api.delete(`/notices/${id}`),
+  pin: (id) => api.post(`/notices/${id}/pin`),
+};
+
+// Exams & Grades endpoints
+export const gradesApi = {
+  getExams: (params) => api.get('/grades/exams', { params }),
+  createExam: (data) => api.post('/grades/exams', data),
+  updateExam: (id, data) => api.put(`/grades/exams/${id}`, data),
+  deleteExam: (id) => api.delete(`/grades/exams/${id}`),
+  getGrades: (examId) => api.get(`/grades/exams/${examId}/grades`),
+  bulkUploadGrades: (data) => api.post('/grades/bulk', data),
+  updateGrade: (id, data) => api.put(`/grades/${id}`, data),
+};
+
+// Fees endpoints
+export const feesApi = {
+  getAll: (params) => api.get('/fees/transactions', { params }),
+  getStudentFees: (studentId) => api.get(`/fees/student/${studentId}`),
+  createTransaction: (data) => api.post('/fees/pay', data),
+  updateStatus: (id, status) => api.put(`/fees/transactions/${id}`, { status }),
+  getReceipt: (id) => api.get(`/fees/receipt/${id}`, { responseType: 'blob' }),
+};
+
+// Attendance endpoints
+export const attendanceApi = {
+  getAll: (params) => api.get('/attendance', { params }),
+  mark: (data) => api.post('/attendance/mark', data),
+  getStudentAttendance: (studentId) => api.get(`/attendance/student/${studentId}`),
+  getCourseAttendance: (courseId) => api.get(`/attendance/course/${courseId}`),
+};
+
+// Reports endpoints
+export const reportsApi = {
+  exportStudents: (data) => api.post('/reports/students', data, { responseType: 'blob' }),
+  exportAttendance: (data) => api.post('/reports/attendance', data, { responseType: 'blob' }),
+  exportFees: (data) => api.post('/reports/fees', data, { responseType: 'blob' }),
+  exportGrades: (data) => api.post('/reports/grades', data, { responseType: 'blob' }),
 };
 
 export default api;
