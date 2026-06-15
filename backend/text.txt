@@ -37,3 +37,28 @@ student---------------
   "department": "CSE"
 }
 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTI0NDE4LCJleHAiOjE3ODEwMTA4MTh9.zG6cWNU_9x0SDetKTt4IY_swGxJNwdGFORquqcEE3PI"
+
+
+
+
+The enrollment id and employee id is stored in particular formate if the user didn't entry in the field of th id it automatically will add the id
+
+Based on your code, here is the format for the enrollment and employee IDs:
+
+  1. Enrollment ID (for Students)
+  The format is STU<Year><Sequence>.
+   * STU: A fixed prefix.
+   * Year: The current 4-digit year (e.g., 2026).
+   * Sequence: A 3-digit number starting from 001, which increments based on the number of students already registered for that specific year.
+   * Example: STU2026001, STU2026002, etc.
+
+  2. Employee ID (for Faculty)
+  The format is FAC<Sequence>.
+   * FAC: A fixed prefix.
+   * Sequence: A 3-digit number starting from 001, which increments based on the total number of faculty members in the system.
+   * Example: FAC001, FAC002, etc.
+
+  Where this is defined in your code:
+   * Backend Helpers: In backend/controllers/authController.js, you have helper functions generateEnrollmentId and generateEmployeeId.
+   * User Creation: In backend/controllers/usersController.js, the logic is also implemented inside the createUser function (around lines 140–155) to generate these IDs automatically when a new user is
+     added

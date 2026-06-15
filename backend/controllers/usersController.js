@@ -7,10 +7,21 @@ const pool = require('../config/db.config');
 // ─────────────────────────────────────────────────────────────
 exports.getUsers = async (req, res) => {
   try {
-    const { role, department, search, page = 1, limit = 20 } = req.query;
+    const { role, department, search, page = 1, limit = 20, is_active } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const params = [];
-    let whereClause = 'WHERE u.is_active = 1';
+    
+    let whereClause = 'WHERE 1=1';
+
+    // Handle is_active filter
+    if (is_active === 'all') {
+      // No filter on is_active
+    } else if (is_active === 'false' || is_active === '0' || is_active === false) {
+      whereClause += ' AND u.is_active = 0';
+    } else {
+      // Default to active users
+      whereClause += ' AND u.is_active = 1';
+    }
 
     // Faculty can ONLY see students enrolled in their courses
     if (req.user.role === 'faculty') {
