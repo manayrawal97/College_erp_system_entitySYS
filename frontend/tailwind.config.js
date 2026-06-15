@@ -21,7 +21,6 @@ export default {
         'gradient-premium': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         'gradient-vibrant': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
         'gradient-success': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'gradient-dark': 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
       },
     },
   },

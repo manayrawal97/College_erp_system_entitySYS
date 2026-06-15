@@ -1,81 +1,74 @@
-@import "tailwindcss";
+@import"tailwindcss";
 
 @theme {
-  --color-primary: #0F172A;
-  --color-secondary: #3B82F6;
-  --color-accent: #8B5CF6;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-navy: #0f172a;
-  --color-purple: #7c3aed;
-  --color-cyan: #06b6d4;
-  --color-soft: #f8fafc;
+ --color-primary: #0F172A;
+ --color-secondary: #3B82F6;
+ --color-accent: #8B5CF6;
+ --color-success: #10B981;
+ --color-warning: #F59E0B;
+ --color-navy: #0f172a;
+ --color-purple: #7c3aed;
+ --color-cyan: #06b6d4;
+ --color-soft: #f8fafc;
 
-  --background-image-gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --background-image-gradient-vibrant: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --background-image-gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --background-image-gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+ --background-image-gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+ --background-image-gradient-vibrant: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+ --background-image-gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
 @layer base {
-  :root {
-    --text: #0F172A;
-    --bg-light: #F8FAFC;
-  }
+ :root {
+ --text: #0F172A;
+ --bg-light: #F8FAFC;
+ }
 
-  html {
-    scroll-behavior: smooth;
-  }
+ html {
+ scroll-behavior: smooth;
+ }
 
-  body {
-    margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: var(--text);
-    background-color: var(--bg-light);
-    overflow-x: hidden;
-  }
+ body {
+ margin: 0;
+ font-family: 'Inter', system-ui, -apple-system, sans-serif;
+ color: var(--text);
+ background-color: var(--bg-light);
+ overflow-x: hidden;
+ }
 }
 
 @layer components {
-  .glass {
-    @apply backdrop-blur-md border;
-    background: rgba(255,255,255,0.7);
-    border-color: rgba(255,255,255,0.2);
-  }
+ .glass {
+ @apply backdrop-blur-md border;
+ background: rgba(255,255,255,0.7);
+ border-color: rgba(255,255,255,0.2);
+ }
 
-  .glass-dark {
-    @apply backdrop-blur-lg border;
-    background: rgba(15,23,42,0.4);
-    border-color: rgba(255,255,255,0.1);
-  }
+ .btn-premium {
+ @apply px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 active:scale-95 shadow-xl hover:shadow-2xl flex items-center justify-center;
+ }
 
-  .btn-premium {
-    @apply px-8 py-4 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 active:scale-95 shadow-xl hover:shadow-2xl flex items-center justify-center;
-  }
-
-  .section-padding {
-    @apply py-24 md:py-32;
-  }
+ .section-padding {
+ @apply py-24 md:py-32;
+ }
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary to-accent;
+ @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary to-accent;
 }
 
 .bg-mesh {
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%);
+ background-color: #f8fafc;
+ background-image: 
+ radial-gradient(at 0% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+ radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
+ radial-gradient(at 100% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%);
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0px); }
+ 0% { transform: translateY(0px); }
+ 50% { transform: translateY(-20px); }
+ 100% { transform: translateY(0px); }
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+ animation: float 6s ease-in-out infinite;
 }

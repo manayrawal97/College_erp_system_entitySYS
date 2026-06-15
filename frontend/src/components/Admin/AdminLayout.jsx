@@ -1,129 +1,147 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  BookOpen, 
-  Bell, 
-  FileText, 
-  CreditCard, 
-  BarChart3, 
-  LogOut,
-  Menu,
-  X,
-  UserCircle,
-  ChevronRight
+import {
+    LayoutDashboard,
+    Users,
+    BookOpen,
+    Bell,
+    FileText,
+    CreditCard,
+    BarChart3,
+    LogOut,
+    Menu,
+    X,
+    UserCircle,
+    ChevronRight
 } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 
 const AdminLayout = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { user, logout } = useAuthContext();
-  const navigate = useNavigate();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const { user, logout } = useAuthContext();
+    const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
-  const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
-    { name: 'User Management', icon: Users, path: '/admin/users' },
-    { name: 'Course Management', icon: BookOpen, path: '/admin/courses' },
-    { name: 'Notice Board', icon: Bell, path: '/admin/notices' },
-    { name: 'Exams & Grades', icon: FileText, path: '/admin/exams' },
-    { name: 'Fee Management', icon: CreditCard, path: '/admin/fees' },
-    { name: 'Reports', icon: BarChart3, path: '/admin/reports' },
-  ];
+    const navItems = [
+        { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+        { name: 'User Management', icon: Users, path: '/admin/users' },
+        { name: 'Course Management', icon: BookOpen, path: '/admin/courses' },
+        { name: 'Notice Board', icon: Bell, path: '/admin/notices' },
+        { name: 'Exams & Grades', icon: FileText, path: '/admin/exams' },
+        { name: 'Fee Management', icon: CreditCard, path: '/admin/fees' },
+        { name: 'Reports', icon: BarChart3, path: '/admin/reports' },
+    ];
 
-  return (
-    <div className="flex h-screen bg-gray-50 dark:bg-navy-900 overflow-hidden">
-      {/* Sidebar */}
-      <aside 
-        className={`${
-          isSidebarOpen ? 'w-64' : 'w-20'
-        } transition-all duration-300 bg-white dark:bg-navy-800 border-r border-gray-200 dark:border-navy-700 flex flex-col z-30`}
-      >
-        <div className="p-4 flex items-center justify-between h-16 border-b border-gray-200 dark:border-navy-700">
-          {isSidebarOpen ? (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">E</div>
-              <span className="text-xl font-bold text-gray-800 dark:text-white">EntitySYS</span>
-            </div>
-          ) : (
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold mx-auto">E</div>
-          )}
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-navy-700 text-gray-500 hidden lg:block"
-          >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+    return (
+        <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+            {/* Sidebar Overlay (Mobile) */}
+            {!isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => setIsSidebarOpen(true)}
+                ></div>
+            )}
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `
-                flex items-center gap-3 p-3 rounded-xl transition-all
-                ${isActive 
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-navy-700'}
-              `}
+            {/* Sidebar */}
+            <aside
+                className={`
+ fixed inset-y-0 left-0 z-50 lg:relative
+ ${isSidebarOpen ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-[280px] lg:w-64'}
+ transition-all duration-300 ease-in-out
+ bg-white border-r border-gray-200 flex flex-col
+ `}
             >
-              <item.icon size={22} />
-              {isSidebarOpen && <span className="font-medium">{item.name}</span>}
-              {!isSidebarOpen && (
-                <div className="absolute left-20 bg-gray-800 text-white p-2 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                  {item.name}
+                <div className="p-4 flex items-center justify-between h-16 border-b border-gray-200">
+                    {(isSidebarOpen && window.innerWidth >= 1024) ? (
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold mx-auto">E</div>
+                    ) : (
+                        <div className="flex items-center gap-2 pl-2">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">E</div>
+                            <span className="text-xl font-bold text-gray-900">EntitySYS</span>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
+                    >
+                        <X size={20} className="lg:hidden" />
+                        <Menu size={20} className="hidden lg:block" />
+                    </button>
                 </div>
-              )}
-            </NavLink>
-          ))}
-        </nav>
 
-        <div className="p-4 border-t border-gray-200 dark:border-navy-700">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-3 p-3 w-full rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-          >
-            <LogOut size={22} />
-            {isSidebarOpen && <span className="font-medium">Logout</span>}
-          </button>
+                <nav className="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                    {navItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => { if (window.innerWidth < 1024) setIsSidebarOpen(true) }}
+                            className={({ isActive }) => `
+ flex items-center gap-3 p-3.5 rounded-xl transition-all group relative
+ ${isActive
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                                    : 'text-gray-600 hover:bg-gray-100 '}
+ `}
+                        >
+                            <item.icon size={22} className="shrink-0" />
+                            <span className={`font-medium transition-opacity duration-200 ${isSidebarOpen && window.innerWidth >= 1024 ? 'lg:opacity-0 lg:hidden' : 'opacity-100'}`}>
+                                {item.name}
+                            </span>
+
+                            {isSidebarOpen && window.innerWidth >= 1024 && (
+                                <div className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                    {item.name}
+                                </div>
+                            )}
+                        </NavLink>
+                    ))}
+                </nav>
+
+                <div className="p-4 border-t border-gray-200">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 p-3.5 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all font-medium"
+                    >
+                        <LogOut size={22} className="shrink-0" />
+                        <span className={`${isSidebarOpen && window.innerWidth >= 1024 ? 'lg:hidden' : 'block'}`}>Logout</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Top Navbar */}
+                <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
+                    <button
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-2.5 rounded-xl bg-gray-50 text-gray-600 lg:hidden"
+                    >
+                        <Menu size={22} />
+                    </button>
+
+                    <div className="flex items-center gap-3 sm:gap-4 ml-auto">
+                        <div className="text-right hidden xs:block">
+                            <p className="text-sm font-bold text-gray-900 leading-tight">{user?.full_name || 'Admin'}</p>
+                            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider leading-tight">{user?.role}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary">
+                            <UserCircle size={28} />
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 bg-gray-50 custom-scrollbar">
+                    <div className="max-w-[1600px] mx-auto w-full">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navbar */}
-        <header className="h-16 bg-white dark:bg-navy-800 border-b border-gray-200 dark:border-navy-700 flex items-center justify-between px-6 z-20">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-navy-700 text-gray-500 lg:hidden"
-          >
-            <Menu size={24} />
-          </button>
-
-          <div className="flex items-center gap-4 ml-auto">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-gray-800 dark:text-white">{user?.full_name || 'Admin'}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <UserCircle size={28} />
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-navy-950">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default AdminLayout;
