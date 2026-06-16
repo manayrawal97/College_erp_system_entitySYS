@@ -70,13 +70,38 @@ exports.getNotices = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// GET /api/notices/faculty — Get notices posted by the logged-in faculty
+// ─────────────────────────────────────────────────────────────
+exports.getFacultyNotices = async (req, res) => {
+  try {
+    const facultyId = req.user.id;
+    const [notices] = await pool.query(
+      `SELECT n.*, c.course_name, c.course_code
+       FROM notices n
+       LEFT JOIN courses c ON n.target_course_id = c.id
+       WHERE n.posted_by_user_id = ?
+       ORDER BY n.created_at DESC`,
+      [facultyId]
+    );
+
+    res.json({ success: true, data: notices });
+  } catch (err) {
+    console.error('getFacultyNotices error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // POST /api/notices — Admin or Faculty posts a notice
 // ─────────────────────────────────────────────────────────────
 exports.createNotice = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
 
-  const { title, content, target_role, target_course_id } = req.body;
+  let { title, content, target_role, target_course_id, course_id } = req.body;
+  
+  // Support both key names for flexibility
+  if (!target_course_id && course_id) target_course_id = course_id;
 
   try {
     // Faculty can only post to their assigned courses
@@ -90,7 +115,7 @@ exports.createNotice = async (req, res) => {
       }
     }
 
-    // Faculty cannot post college-wide notices (no target_course_id)
+    // Faculty cannot post college-wide notices (no target_course_id) - Relaxed this if target_role is set but for now following strict course-specific rule if that was the intent
     if (req.user.role === 'faculty' && !target_course_id) {
       return res.status(403).json({ success: false, message: 'Faculty can only post course-specific notices' });
     }

@@ -213,11 +213,11 @@ exports.assignFaculty = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/faculty/:id/courses — Faculty sees their assigned courses
+// GET /api/courses/faculty OR /api/courses/faculty/:id — Faculty sees their assigned courses
 // ─────────────────────────────────────────────────────────────
 exports.getFacultyCourses = async (req, res) => {
   try {
-    const facultyId = req.params.id;
+    const facultyId = req.params.id || req.user.id;
 
     // Faculty can only see their own courses
     if (req.user.role === 'faculty' && req.user.id !== parseInt(facultyId)) {

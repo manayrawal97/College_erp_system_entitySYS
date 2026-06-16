@@ -99,7 +99,7 @@ app.use('/api/', rateLimit({
 // Stricter limit for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 15,
   message: { success: false, message: 'Too many attempts. Try again in 15 minutes.' },
 });
 app.use('/api/auth/login', authLimiter);
@@ -121,6 +121,7 @@ app.use('/api/grades',     require('./routes/gradesRoutes'));
 app.use('/api/fees',       require('./routes/feesRoutes'));
 app.use('/api/notices',    require('./routes/noticesRoutes'));
 app.use('/api/reports',    require('./routes/reportsRoutes'));
+app.use('/api/dashboard',  require('./routes/dashboardRoutes'));
 
 // Also mount faculty course route at /api prefix
 app.use('/api/faculty',    require('./routes/coursesRoutes'));

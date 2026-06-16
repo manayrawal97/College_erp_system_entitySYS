@@ -9,6 +9,7 @@ import ResetPasswordPage from"./Pages/Auth/ResetPasswordPage";
 import VerifyOtpPage from"./Pages/Auth/VerifyOtpPage";
 import StudentDashboard from"./Pages/Student/StudentDashboard";
 import AdminDashboard from"./Pages/Admin/AdminDashboard";
+import FacultyDashboard from "./Pages/Faculty/FacultyDashboard";
 import ProtectedRoute from"./components/Auth/ProtectedRoute";
 
 const PlaceholderPage = ({ title }) => (
@@ -63,6 +64,16 @@ const App = () => {
  element={
  <ProtectedRoute allowedRoles={['student']}>
  <StudentDashboard />
+ </ProtectedRoute>
+ } 
+ />
+
+ {/* Faculty Routes */}
+ <Route 
+ path="/faculty/dashboard" 
+ element={
+ <ProtectedRoute allowedRoles={['faculty']}>
+ <FacultyDashboard />
  </ProtectedRoute>
  } 
  />

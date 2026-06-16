@@ -7,7 +7,7 @@ import NoticeManagement from '../../components/Admin/NoticeManagement';
 import ExamManagement from '../../components/Admin/ExamManagement';
 import FeeManagement from '../../components/Admin/FeeManagement';
 import ReportSection from '../../components/Admin/ReportSection';
-import { usersApi, coursesApi, feesApi, noticesApi, gradesApi } from '../../services/api';
+import { dashboardApi } from '../../services/api.js';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -21,11 +21,14 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            // Simulate data fetch
-            setLoading(false);
+            const response = await dashboardApi.getStats();
+            if (response.data.success) {
+                setStats(response.data.data);
+            }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
             toast.error('Failed to load dashboard statistics');
+        } finally {
             setLoading(false);
         }
     };

@@ -19,16 +19,11 @@ const assignFacultyValidation = [
 
 router.use(authMiddleware);
 
+// Faculty: see their own assigned courses
+router.get('/faculty', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
+router.get('/faculty/:id/courses', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
 
 router.get('/', ctrl.getCourses);
 router.get('/:id', ctrl.getCourseById);
-router.post('/', authorize('admin'), courseValidation, ctrl.createCourse);
-router.put('/:id', authorize('admin'), ctrl.updateCourse);
-router.delete('/:id', authorize('admin'), ctrl.deleteCourse);
-router.post('/:id/assign-faculty', authorize('admin'), assignFacultyValidation, ctrl.assignFaculty);
-router.post('/:id/enroll', authorize('admin'), ctrl.enrollStudent);
- 
-// Faculty: see their own assigned courses
-router.get('/faculty/:id/courses', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
  
 module.exports = router;

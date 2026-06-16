@@ -22,6 +22,11 @@ api.interceptors.request.use(
  (error) => Promise.reject(error)
 );
 
+// Dashboard endpoints (Moved up for visibility)
+export const dashboardApi = {
+    getStats: () => api.get('/dashboard/stats'),
+};
+
 // Auth endpoints
 export const authApi = {
  login: (credentials) => api.post('/auth/login', credentials),
@@ -53,6 +58,8 @@ export const coursesApi = {
  enrollStudent: (id, data) => api.post(`/courses/${id}/enroll`, data),
  removeEnrollment: (id, data) => api.delete(`/courses/${id}/enroll`, { data }),
  assignFaculty: (data) => api.post('/courses/assign', data),
+ getFacultyCourses: () => api.get('/courses/faculty'),
+ getCourseStudents: (id) => api.get(`/courses/${id}/students`),
 };
 
 // Notices endpoints
@@ -63,6 +70,7 @@ export const noticesApi = {
  update: (id, noticeData) => api.put(`/notices/${id}`, noticeData),
  delete: (id) => api.delete(`/notices/${id}`),
  pin: (id) => api.post(`/notices/${id}/pin`),
+ getFacultyNotices: () => api.get('/notices/faculty'),
 };
 
 // Exams & Grades endpoints
