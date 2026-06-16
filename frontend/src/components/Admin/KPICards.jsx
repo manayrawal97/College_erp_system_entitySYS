@@ -11,15 +11,15 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const KPI_DATA = [
-    { title: 'Total Users', value: '1,234', icon: Users, color: 'bg-blue-500', trend: '+12%', trendUp: true },
-    { title: 'Total Students', value: '1,050', icon: GraduationCap, color: 'bg-indigo-500', trend: '+5%', trendUp: true },
-    { title: 'Total Faculty', value: '184', icon: UserCheck, color: 'bg-emerald-500', trend: '+2%', trendUp: true },
-    { title: 'Active Courses', value: '45', icon: BookOpen, color: 'bg-amber-500', trend: '0%', trendUp: true },
-    { title: 'Total Enrollments', value: '3,450', icon: ClipboardList, color: 'bg-purple-500', trend: '+18%', trendUp: true },
-    { title: 'Pending Fees', value: '₹2.3L', icon: AlertCircle, color: 'bg-rose-500', trend: '-8%', trendUp: false },
-    { title: 'Total Exams', value: '12', icon: Calendar, color: 'bg-orange-500', trend: 'Upcoming', trendUp: true },
-    { title: 'Active Notices', value: '8', icon: Bell, color: 'bg-pink-500', trend: 'Live', trendUp: true },
+const KPI_CONFIG = [
+    { key: 'totalUsers',       title: 'Total Users',       icon: Users,         color: 'bg-blue-500',   trend: '+12%',     trendUp: true  },
+    { key: 'totalStudents',    title: 'Total Students',    icon: GraduationCap, color: 'bg-indigo-500', trend: '+5%',      trendUp: true  },
+    { key: 'totalFaculty',     title: 'Total Faculty',     icon: UserCheck,     color: 'bg-emerald-500',trend: '+2%',      trendUp: true  },
+    { key: 'activeCourses',    title: 'Active Courses',    icon: BookOpen,      color: 'bg-amber-500',  trend: '0%',       trendUp: true  },
+    { key: 'totalEnrollments', title: 'Total Enrollments', icon: ClipboardList, color: 'bg-purple-500', trend: '+18%',     trendUp: true  },
+    { key: 'pendingFees',      title: 'Pending Fees',      icon: AlertCircle,   color: 'bg-rose-500',   trend: '-8%',      trendUp: false },
+    { key: 'totalExams',       title: 'Total Exams',       icon: Calendar,      color: 'bg-orange-500', trend: 'Upcoming', trendUp: true  },
+    { key: 'activeNotices',    title: 'Active Notices',    icon: Bell,          color: 'bg-pink-500',   trend: 'Live',     trendUp: true  },
 ];
 
 const KPICard = ({ title, value, icon: Icon, color, trend, trendUp, index }) => {
@@ -47,8 +47,22 @@ const KPICard = ({ title, value, icon: Icon, color, trend, trendUp, index }) => 
 };
 
 const KPICards = ({ stats }) => {
-    // If we had real stats from API, we would use them here
-    const displayData = stats || KPI_DATA;
+    const formatValue = (key, value) => {
+        if (value === undefined || value === null) return '...';
+        if (key === 'pendingFees') {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumSignificantDigits: 3
+            }).format(value);
+        }
+        return value.toLocaleString();
+    };
+
+    const displayData = KPI_CONFIG.map(config => ({
+        ...config,
+        value: formatValue(config.key, stats?.[config.key])
+    }));
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-8">

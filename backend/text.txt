@@ -38,7 +38,13 @@ student---------------
 }
 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzgwOTI0NDE4LCJleHAiOjE3ODEwMTA4MTh9.zG6cWNU_9x0SDetKTt4IY_swGxJNwdGFORquqcEE3PI"
 
-
+Admin credentials
+{
+ "full_name": "Kunal",
+  "email": "kunal@gmail.com",
+  "password": "kunalKUNAL@123",
+  "role": "Admin"
+}
 
 
 The enrollment id and employee id is stored in particular formate if the user didn't entry in the field of th id it automatically will add the id

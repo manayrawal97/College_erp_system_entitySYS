@@ -100,7 +100,8 @@ const UserManagement = () => {
                         <Users className="text-primary" />
                         User Management
                     </h2>
-                    <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    {/* <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2"> */}
                         <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
                             <Upload size={18} />
                             Import
