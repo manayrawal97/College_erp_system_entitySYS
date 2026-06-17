@@ -3,6 +3,63 @@ const { validationResult } = require('express-validator');
 const pool = require('../config/db.config');
 
 // ─────────────────────────────────────────────────────────────
+// GET /api/users/profile
+// ─────────────────────────────────────────────────────────────
+exports.getProfile = async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    const [rows] = await pool.query(
+      `SELECT u.id, u.email, u.role, u.full_name, u.phone, u.is_active, u.created_at,
+              sp.enrollment_id, sp.department AS student_dept, sp.current_semester, sp.parent_phone, sp.address,
+              fp.employee_id, fp.department AS faculty_dept, fp.sub_role, fp.sub_role_custom, fp.qualification, fp.joining_date
+       FROM users u
+       LEFT JOIN student_profiles sp ON u.id = sp.user_id AND u.role = 'student'
+       LEFT JOIN faculty_profiles fp ON u.id = fp.user_id AND u.role = 'faculty'
+       WHERE u.id = ?`,
+      [req.user.id]
+    );
+
+    if (!rows.length) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    const user = rows[0];
+    const profileData = user.role === 'student' ? {
+      enrollment_id: user.enrollment_id,
+      department: user.student_dept,
+      current_semester: user.current_semester,
+      parent_phone: user.parent_phone,
+      address: user.address
+    } : user.role === 'faculty' ? {
+      employee_id: user.employee_id,
+      department: user.faculty_dept,
+      sub_role: user.sub_role,
+      sub_role_custom: user.sub_role_custom,
+      qualification: user.qualification,
+      joining_date: user.joining_date
+    } : {};
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        full_name: user.full_name,
+        phone: user.phone,
+        created_at: user.created_at
+      },
+      profile: profileData
+    });
+  } catch (err) {
+    console.error('getProfile error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching profile' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // GET /api/users  — Admin: all users | Faculty: their students only
 // ─────────────────────────────────────────────────────────────
 exports.getUsers = async (req, res) => {

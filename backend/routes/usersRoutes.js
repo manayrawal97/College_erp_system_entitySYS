@@ -19,6 +19,7 @@ const userCreateValidation = [
 // All routes require authentication
 router.use(authMiddleware);
 
+router.get('/profile', ctrl.getProfile);
 router.get('/', authorize('admin', 'faculty'), ctrl.getUsers);
 router.get('/:id', ctrl.getUserById);
 

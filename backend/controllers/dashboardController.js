@@ -9,11 +9,11 @@ exports.getStats = async (req, res) => {
     if (req.user.role === 'faculty') {
       const facultyId = req.user.id;
       const [
-        [coursesCount],
-        [studentsCount],
-        [noticesCount],
-        [pendingGrades],
-        [upcomingExams]
+        [coursesRows],
+        [studentsRows],
+        [noticesRows],
+        [pendingRows],
+        [examsRows]
       ] = await Promise.all([
         pool.query('SELECT COUNT(*) as count FROM course_assignments WHERE faculty_id = ?', [facultyId]),
         pool.query(`SELECT COUNT(DISTINCT e.student_id) as count 
@@ -36,26 +36,26 @@ exports.getStats = async (req, res) => {
       return res.json({
         success: true,
         data: {
-          coursesCount: coursesCount.count,
-          studentsCount: studentsCount.count,
-          noticesCount: noticesCount.count,
-          pendingGrades: pendingGrades.count,
-          upcomingExams: upcomingExams.count,
-          attendanceRate: '85%' // Mocked for now
+          coursesCount: coursesRows[0]?.count || 0,
+          studentsCount: studentsRows[0]?.count || 0,
+          noticesCount: noticesRows[0]?.count || 0,
+          pendingGrades: pendingRows[0]?.count || 0,
+          upcomingExams: examsRows[0]?.count || 0,
+          attendanceRate: 85 // Percentage
         }
       });
     }
 
     // Admin Stats (Original logic)
     const [
-      [usersCount],
-      [studentsCount],
-      [facultyCount],
-      [activeCoursesCount],
-      [enrollmentsCount],
-      [pendingFees],
-      [examsCount],
-      [activeNoticesCount]
+      [usersRows],
+      [studentsRows],
+      [facultyRows],
+      [activeCoursesRows],
+      [enrollmentsRows],
+      [pendingFeesRows],
+      [examsRows],
+      [activeNoticesRows]
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM users WHERE is_active = 1'),
       pool.query("SELECT COUNT(*) as count FROM users WHERE role = 'student' AND is_active = 1"),
@@ -70,14 +70,14 @@ exports.getStats = async (req, res) => {
     res.json({
       success: true,
       data: {
-        totalUsers: usersCount.count,
-        totalStudents: studentsCount.count,
-        totalFaculty: facultyCount.count,
-        activeCourses: activeCoursesCount.count,
-        totalEnrollments: enrollmentsCount.count,
-        pendingFees: pendingFees.total || 0,
-        totalExams: examsCount.count,
-        activeNotices: activeNoticesCount.count,
+        totalUsers: usersRows[0]?.count || 0,
+        totalStudents: studentsRows[0]?.count || 0,
+        totalFaculty: facultyRows[0]?.count || 0,
+        activeCourses: activeCoursesRows[0]?.count || 0,
+        totalEnrollments: enrollmentsRows[0]?.count || 0,
+        pendingFees: pendingFeesRows[0]?.total || 0,
+        totalExams: examsRows[0]?.count || 0,
+        activeNotices: activeNoticesRows[0]?.count || 0,
       }
     });
   } catch (err) {

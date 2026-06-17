@@ -24,7 +24,8 @@ import {
     Menu,
     Trash2,
     Edit,
-    Paperclip
+    Paperclip,
+    CreditCard
 } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -38,20 +39,13 @@ import {
 } from '../../services/api';
 import toast from 'react-hot-toast';
 import { storage } from '../../utils/storage';
-// import { dashboardController } from '../../../../backend/controllers/dashboardController';
+import FacultyKPICards from '../../components/Faculty/FacultyKPICards';
 
 const FacultyDashboard = () => {
     const { user, logout } = useAuthContext();
     const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState('dashboard');
-    const [stats, setStats] = useState({
-        assignedCourses: 0,
-        totalStudents: 0,
-        todayAttendance: '0%',
-        pendingGrades: 0,
-        upcomingExams: 0,
-        activeNotices: 0
-    });
+    const [stats, setStats] = useState(null);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -61,116 +55,24 @@ const FacultyDashboard = () => {
         fetchInitialData();
     }, []);
 
-    // const fetchInitialData = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const [coursesRes, statsRes] = await Promise.all([
-    //             coursesApi.getFacultyCourses(),
-    //             dashboardApi.getStats()
-    //         ]);
-
-    //         if (coursesRes.data.success) {
-    //             setCourses(coursesRes.data.data);
-    //         }
-
-    //         if (statsRes.data.success) {
-    //             // Assuming backend stats match or can be mapped
-    //             const s = statsRes.data.data;
-    //             setStats({
-    //                 assignedCourses: s.coursesCount ?? 0,
-    //                 totalStudents: s.studentsCount ?? 0,
-    //                 todayAttendance: s.attendanceRate ?? '0%',
-    //                 pendingGrades: s.pendingGrades ?? 0,
-    //                 upcomingExams: s.upcomingExams ?? 0,
-    //                 activeNotices: s.noticesCount ?? 0
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //         toast.error('Failed to load dashboard data');
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const fetchInitialData = async () => {
         try {
             setLoading(true);
-            const today = new Date().toISOString().slice(0, 10); // "2025-06-16"
-
-            // ── Step 1: Fetch courses first (needed for other calculations) ──
-            const coursesRes = await coursesApi.getFacultyCourses();
-            const courseList = coursesRes.data.data || [];
-            setCourses(courseList);
-
-            // ── Step 2: Derive what we can directly from courseList ──────────
-            const assignedCourses = courseList.length;
-
-            // enrolled_count comes from the backend's getCourses query
-            const totalStudents = courseList.reduce(
-                (sum, c) => sum + (c.enrolled_count || 0), 0
-            );
-
-            // ── Step 3: Fire remaining calls in parallel ─────────────────────
-            const [examsRes, noticesRes, attendanceRes] = await Promise.all([
-                // Upcoming exams — getExams returns all exams for faculty's courses
-                gradesApi.getExams(),
-
-                // Active (non-archived) notices
-                noticesApi.getAll({ archived: 0 }),
-
-                // Today's attendance for first course (if any course exists)
-                courseList.length > 0
-                    ? attendanceApi.getCourse(courseList[0].id, { date: today })
-                    : Promise.resolve({ data: { data: { records: [] } } }),
+            const [coursesRes, statsRes] = await Promise.all([
+                coursesApi.getFacultyCourses(),
+                dashboardApi.getStats()
             ]);
 
-            // ── Step 4: Compute each stat ────────────────────────────────────
+            if (coursesRes.data.success) {
+                setCourses(coursesRes.data.data);
+            }
 
-            // Upcoming exams = exams whose date is today or in the future
-            const upcomingExams = (examsRes.data.data || []).filter(
-                (e) => new Date(e.exam_date) >= new Date(today)
-            ).length;
-
-            // Active notices count
-            const activeNotices = noticesRes.data.pagination?.total
-                || (noticesRes.data.data || []).length;
-
-            // Today's attendance % for first course
-            const todayRecords = attendanceRes.data.data?.records || [];
-            const presentCount = todayRecords.filter(
-                (r) => r.status === 'present' || r.status === 'late'
-            ).length;
-            const firstCourseTotal = courseList[0]?.enrolled_count || 0;
-            const todayAttendance = firstCourseTotal > 0
-                ? `${Math.round((presentCount / firstCourseTotal) * 100)}%`
-                : '—';
-
-            // Pending grades = students without a grade in any upcoming exam
-            // Simple approximation: exams that exist but have 0 graded students
-            const courseGradesRes = await Promise.all(
-                courseList.map((c) => gradesApi.getCourse(c.id))
-            );
-            const gradedExamIds = new Set(
-                courseGradesRes.flatMap((r) => r.data.data?.grades || []).map((g) => g.exam_id)
-            );
-            const pendingGrades = (examsRes.data.data || []).filter(
-                (e) => !gradedExamIds.has(e.id)
-            ).length;
-
-            // ── Step 5: Set all stats at once ────────────────────────────────
-            setStats({
-                assignedCourses,
-                totalStudents,
-                todayAttendance,
-                pendingGrades,
-                upcomingExams,
-                activeNotices,
-            });
-
+            if (statsRes.data.success) {
+                setStats(statsRes.data.data);
+            }
         } catch (error) {
-            console.error('Error fetching data:', error);
-            toast.error('Failed to load dashboard data');
+            console.error('Error fetching dashboard data:', error);
+            toast.error('Failed to load dashboard statistics');
         } finally {
             setLoading(false);
         }
@@ -185,58 +87,6 @@ const FacultyDashboard = () => {
         if (!name) return 'F';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
-
-    // Components for different sections
-    // const KPICards = () => (
-    //     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-    //         {[
-    //             { label: 'Assigned Courses', value: stats.assignedCourses, icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
-    //             { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    //             { label: "Today's Attendance", value: stats.todayAttendance, icon: CalendarCheck, color: 'text-green-600', bg: 'bg-green-50' },
-    //             { label: 'Pending Grades', value: stats.pendingGrades, icon: GraduationCap, color: 'text-orange-600', bg: 'bg-orange-50' },
-    //             { label: 'Upcoming Exams', value: stats.upcomingExams, icon: Clock, color: 'text-red-600', bg: 'bg-red-50' },
-    //             { label: 'Active Notices', value: stats.activeNotices, icon: Bell, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    //         ].map((item, idx) => (
-    //             <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-    //                 <div className={`${item.bg} ${item.color} w-10 h-10 rounded-xl flex items-center justify-center mb-3`}>
-    //                     <item.icon size={20} />
-    //                 </div>
-    //                 <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{item.label}</p>
-    //                 <p className="text-2xl font-bold text-gray-900 mt-1">{item.value}</p>
-    //             </div>
-    //         ))}
-    //     </div>
-    // );
-
-    const KPICards = () => (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            {[
-                { label: 'Assigned Courses', value: stats.assignedCourses, icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { label: 'Total Students', value: stats.totalStudents, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-                { label: "Today's Attendance", value: stats.todayAttendance, icon: CalendarCheck, color: 'text-green-600', bg: 'bg-green-50' },
-                { label: 'Pending Grades', value: stats.pendingGrades, icon: GraduationCap, color: 'text-orange-600', bg: 'bg-orange-50' },
-                { label: 'Upcoming Exams', value: stats.upcomingExams, icon: Clock, color: 'text-red-600', bg: 'bg-red-50' },
-                { label: 'Active Notices', value: stats.activeNotices, icon: Bell, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-            ].map((item, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className={`${item.bg} ${item.color} w-10 h-10 rounded-xl flex items-center justify-center mb-3`}>
-                        <item.icon size={20} />
-                    </div>
-                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">
-                        {item.label}
-                    </p>
-
-                    {/* ↓ Show animated pulse while loading, real value after */}
-                    {loading ? (
-                        <div className="h-8 w-16 bg-gray-200 rounded-lg animate-pulse mt-1" />
-                    ) : (
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{item.value}</p>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-
 
     const CoursesOverview = () => (
         <div className="space-y-6">
@@ -309,7 +159,7 @@ const FacultyDashboard = () => {
             case 'dashboard':
                 return (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <KPICards />
+                        <FacultyKPICards stats={stats} loading={loading} />
                         <CoursesOverview />
                     </div>
                 );
@@ -394,37 +244,88 @@ const FacultyDashboard = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                    className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full border border-gray-100 hover:bg-gray-50 transition-all"
+                                    className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full border border-gray-100 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 >
                                     <div className="hidden sm:block text-right">
-                                        <p className="text-xs font-bold text-gray-900">{user?.full_name}</p>
-                                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{user?.role}</p>
+                                        <p className="text-xs font-bold text-gray-900 leading-tight">{user?.full_name}</p>
+                                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-tight">{user?.role}</p>
                                     </div>
-                                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
+                                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                         {getInitials(user?.full_name)}
                                     </div>
                                 </button>
 
                                 {isProfileOpen && (
-                                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="px-4 py-3 border-b border-gray-50">
-                                            <p className="text-sm font-bold text-gray-900">{user?.full_name}</p>
-                                            <p className="text-xs text-gray-500">{user?.email}</p>
+                                    <>
+                                        {/* Global Click-away Backdrop */}
+                                        <div 
+                                            className="fixed inset-0 z-[100]" 
+                                            onClick={() => setIsProfileOpen(false)}
+                                        ></div>
+                                        
+                                        <div className="absolute top-full right-0 mt-3 w-60 bg-white border border-gray-100 rounded-2xl shadow-2xl py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[110]">
+                                            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
+                                                <p className="text-sm font-bold text-gray-900 truncate">{user?.full_name}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest truncate">{user?.email}</p>
+                                            </div>
+                                            <div className="p-1">
+                                                <button 
+                                                    onClick={() => {
+                                                        setIsProfileOpen(false);
+                                                        navigate('/profile');
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary rounded-xl transition-all font-medium text-left"
+                                                >
+                                                    <User size={18} className="text-gray-400 group-hover:text-primary" /> My Profile
+                                                </button>
+                                                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all font-medium text-left">
+                                                    <Edit size={18} className="text-gray-400" /> Settings
+                                                </button>
+                                                <div className="h-px bg-gray-50 my-1"></div>
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-all font-bold text-left"
+                                                >
+                                                    <LogOut size={18} /> Logout
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                            <User size={18} className="text-gray-400" /> My Profile
-                                        </button>
-                                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                            <Edit size={18} className="text-gray-400" /> Settings
-                                        </button>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-50"
-                                        >
-                                            <LogOut size={18} /> Logout
-                                        </button>
-                                    </div>
+                                    </>
                                 )}
+                            </div>
+
+                                {/* <AnimatePresence>
+                                    {isProfileOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                                            className="absolute right-0 mt-4 w-72 bg-white shadow-2xl rounded-3xl p-4 border border-gray-100 z-[110]"
+                                        >
+                                            <div className="p-4 bg-gray-50 rounded-2xl mb-4">
+                                                <p className="font-black text-gray-900 truncate">{user.full_name}</p>
+                                                <p className="text-xs text-gray-500 font-bold truncate mt-1">{user.email}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Link to="/profile" className="flex items-center space-x-4 p-3.5 rounded-2xl hover:bg-gray-50 transition-colors text-sm font-bold text-gray-600">
+                                                    <User className="h-5 w-5 text-secondary" /> <span>My Profile</span>
+                                                </Link>
+                                                <Link to="/settings" className="flex items-center space-x-4 p-3.5 rounded-2xl hover:bg-gray-50 transition-colors text-sm font-bold text-gray-600">
+                                                    <Settings className="h-5 w-5 text-secondary" /> <span>Settings</span>
+                                                </Link>
+                                                <div className="border-t border-gray-100 my-3 pt-3">
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="w-full flex items-center space-x-4 p-3.5 rounded-2xl hover:bg-red-50 text-red-500 transition-colors text-sm font-black"
+                                                    >
+                                                        <LogOut className="h-5 w-5" /> <span>Logout</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence> */}
+
                             </div>
 
                             {/* Mobile Menu Toggle */}
@@ -436,7 +337,6 @@ const FacultyDashboard = () => {
                             </button>
                         </div>
                     </div>
-                </div>
 
                 {/* Mobile Navigation */}
                 {isMobileMenuOpen && (

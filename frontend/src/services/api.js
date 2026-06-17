@@ -41,6 +41,7 @@ export const authApi = {
 export const usersApi = {
  getAll: (params) => api.get('/users', { params }),
  getById: (id) => api.get(`/users/${id}`),
+ getProfile: () => api.get(`/users/profile?t=${Date.now()}`),
  create: (userData) => api.post('/users', userData),
  update: (id, userData) => api.put(`/users/${id}`, userData),
  delete: (id) => api.delete(`/users/${id}`),

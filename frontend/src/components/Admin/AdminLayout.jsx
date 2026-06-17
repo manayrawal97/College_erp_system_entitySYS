@@ -18,6 +18,7 @@ import { useAuthContext } from '../../context/AuthContext';
 
 const AdminLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { user, logout } = useAuthContext();
     const navigate = useNavigate();
 
@@ -127,8 +128,44 @@ const AdminLayout = ({ children }) => {
                             <p className="text-sm font-bold text-gray-900 leading-tight">{user?.full_name || 'Admin'}</p>
                             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider leading-tight">{user?.role}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary">
-                            <UserCircle size={28} />
+                        
+                        <div className="relative">
+                            <button 
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                className="w-10 h-10 rounded-xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all cursor-pointer overflow-hidden shadow-sm"
+                            >
+                                <UserCircle size={28} />
+                            </button>
+
+                            {isProfileOpen && (
+                                <>
+                                    <div 
+                                        className="fixed inset-0 z-40" 
+                                        onClick={() => setIsProfileOpen(false)}
+                                    ></div>
+                                    <div className="absolute top-full right-0 mt-3 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="px-4 py-3 border-b border-gray-50">
+                                            <p className="text-sm font-bold text-gray-900 truncate">{user?.full_name}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{user?.email}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => {
+                                                setIsProfileOpen(false);
+                                                navigate('/profile');
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                                        >
+                                            <UserCircle size={18} className="text-gray-400" /> My Profile
+                                        </button>
+                                        <button 
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium border-t border-gray-50 mt-1"
+                                        >
+                                            <LogOut size={18} /> Logout
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </header>

@@ -10,6 +10,7 @@ import VerifyOtpPage from"./Pages/Auth/VerifyOtpPage";
 import StudentDashboard from"./Pages/Student/StudentDashboard";
 import AdminDashboard from"./Pages/Admin/AdminDashboard";
 import FacultyDashboard from "./Pages/Faculty/FacultyDashboard";
+import ProfilePage from "./Pages/Profile/ProfilePage";
 import ProtectedRoute from"./components/Auth/ProtectedRoute";
 
 const PlaceholderPage = ({ title }) => (
@@ -84,6 +85,16 @@ const App = () => {
  element={
  <ProtectedRoute allowedRoles={['admin']}>
  <AdminDashboard />
+ </ProtectedRoute>
+ } 
+ />
+
+ {/* Unified Profile Route */}
+ <Route 
+ path="/profile" 
+ element={
+ <ProtectedRoute>
+ <ProfilePage />
  </ProtectedRoute>
  } 
  />
