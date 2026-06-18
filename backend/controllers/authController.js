@@ -1,14 +1,138 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 const pool = require('../config/db.config');
+const emailController = require('./emailController');
+const { getOTPEmailTemplate } = require('../utils/emailTemplates');
 
 // Helper: generate JWT
-const generateToken = ( userId ) => {
+const generateToken = ( userId, options = {} ) => {
     return jwt.sign({id: userId}, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+        expiresIn: options.expiresIn || process.env.JWT_EXPIRES_IN || '1d',
     });
 };
+
+// ... (keep generateEnrollmentId and generateEmployeeId)
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/auth/forgot-password
+// ─────────────────────────────────────────────────────────────
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const [users] = await pool.query('SELECT id, full_name FROM users WHERE email = ?', [email]);
+    
+    // Always return 200 to prevent user enumeration
+    if (users.length === 0) {
+      return res.json({ success: true, message: 'If this email exists, an OTP has been sent.' });
+    }
+
+    const user = users[0];
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES) || 10;
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60000);
+
+    await pool.query(
+      'UPDATE users SET otp_code = ?, otp_expires_at = ?, otp_attempts = 0 WHERE id = ?',
+      [otp, expiresAt, user.id]
+    );
+
+    const emailSent = await emailController.sendEmail(
+      email,
+      'Password Reset OTP - EntitySYS',
+      getOTPEmailTemplate(otp, user.full_name, expiryMinutes)
+    );
+
+    if (!emailSent) {
+      return res.status(500).json({ success: false, message: 'Error sending email' });
+    }
+
+    res.json({ success: true, message: 'OTP sent to your email' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/auth/verify-otp
+// ─────────────────────────────────────────────────────────────
+exports.verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const [users] = await pool.query(
+      'SELECT id, otp_code, otp_expires_at, otp_attempts FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const user = users[0];
+
+    if (!user.otp_code || user.otp_expires_at < new Date()) {
+      return res.status(400).json({ success: false, message: 'OTP expired or not requested' });
+    }
+
+    if (user.otp_attempts >= (parseInt(process.env.OTP_MAX_ATTEMPTS) || 5)) {
+      return res.status(403).json({ success: false, message: 'Too many failed attempts. Request a new OTP.' });
+    }
+
+    if (user.otp_code !== otp) {
+      await pool.query('UPDATE users SET otp_attempts = otp_attempts + 1 WHERE id = ?', [user.id]);
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    }
+
+    // Generate a temporary reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    await pool.query(
+      'UPDATE users SET otp_code = NULL, otp_expires_at = NULL, reset_token = ? WHERE id = ?',
+      [resetToken, user.id]
+    );
+
+    res.json({ success: true, resetToken });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/auth/reset-password
+// ─────────────────────────────────────────────────────────────
+exports.resetPassword = async (req, res) => {
+  const { email, resetToken, newPassword } = req.body;
+
+  try {
+    const [users] = await pool.query(
+      'SELECT id FROM users WHERE email = ? AND reset_token = ?',
+      [email, resetToken]
+    );
+
+    if (users.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE users SET password_hash = ?, reset_token = NULL WHERE id = ?',
+      [hashedPassword, users[0].id]
+    );
+
+    res.json({ success: true, message: 'Password reset successful. You can now login.' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// (keep changePassword from before)
+// ...
+
 
 // Helper: generate unique IDs for enrollment/employee
 const generateEnrollmentId = async () => {

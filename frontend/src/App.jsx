@@ -5,8 +5,6 @@ import LandingPage from"./Pages/Landing/LandingPage";
 import LoginPage from"./Pages/Auth/LoginPage";
 import RegisterPage from"./Pages/Auth/RegisterPage";
 import ForgotPasswordPage from"./Pages/Auth/ForgotPasswordPage";
-import ResetPasswordPage from"./Pages/Auth/ResetPasswordPage";
-import VerifyOtpPage from"./Pages/Auth/VerifyOtpPage";
 import StudentDashboard from"./Pages/Student/StudentDashboard";
 import AdminDashboard from"./Pages/Admin/AdminDashboard";
 import FacultyDashboard from "./Pages/Faculty/FacultyDashboard";
@@ -32,8 +30,6 @@ const App = () => {
  <Route path="/login" element={<LoginPage />} />
  <Route path="/register" element={<RegisterPage />} />
  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
- <Route path="/reset-password" element={<ResetPasswordPage />} />
- <Route path="/verify-otp" element={<VerifyOtpPage />} />
 
  {/* Role-based Login Redirects (Legacy support) */}
  <Route path="/student-login" element={<LoginPage />} />

@@ -31,10 +31,11 @@ export const dashboardApi = {
 export const authApi = {
  login: (credentials) => api.post('/auth/login', credentials),
  register: (userData) => api.post('/auth/register', userData),
- forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
- resetPassword: (data) => api.post('/auth/reset-password', data),
- verifyOtp: (data) => api.post('/auth/verify-otp', data),
  getMe: () => api.get('/auth/me'),
+ forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+ verifyOTP: (email, otp) => api.post('/auth/verify-otp', { email, otp }),
+ resetPassword: (data) => api.post('/auth/reset-password', data),
+ changePassword: (passwords) => api.post('/auth/change-password', passwords),
 };
 
 // Users endpoints

@@ -1,142 +1,130 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import { authApi } from '../../services/api';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
-const VerifyOtpForm = () => {
- const navigate = useNavigate();
- const location = useLocation();
- const email = location.state?.email || '';
- 
- const [otp, setOtp] = useState(['', '', '', '', '', '']);
- const [isLoading, setIsLoading] = useState(false);
- const inputRefs = useRef([]);
+const VerifyOtpForm = ({ email, onNext }) => {
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const [loading, setLoading] = useState(false);
+    const [timer, setTimer] = useState(60);
+    const inputRefs = useRef([]);
 
- useEffect(() => {
- if (!email) {
- toast.error('Session expired. Please try again.');
- navigate('/login');
- }
- }, [email, navigate]);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimer(prev => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
- const handleChange = (index, value) => {
- if (isNaN(value)) return;
+    const handleChange = (index, value) => {
+        if (!/^\d*$/.test(value)) return;
+        
+        const newOtp = [...otp];
+        newOtp[index] = value.substring(value.length - 1);
+        setOtp(newOtp);
 
- const newOtp = [...otp];
- newOtp[index] = value.substring(value.length - 1);
- setOtp(newOtp);
+        if (value && index < 5) {
+            inputRefs.current[index + 1].focus();
+        }
 
- // Auto focus next input
- if (value && index < 5) {
- inputRefs.current[index + 1].focus();
- }
+        // Auto-submit if all digits are entered
+        if (newOtp.every(digit => digit !== '') && value) {
+            handleVerify(newOtp.join(''));
+        }
+    };
 
- // Auto submit if complete
- if (newOtp.every(digit => digit !== '') && index === 5) {
- handleVerify(newOtp.join(''));
- }
- };
+    const handleKeyDown = (index, e) => {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            inputRefs.current[index - 1].focus();
+        }
+    };
 
- const handleKeyDown = (index, e) => {
- if (e.key === 'Backspace' && !otp[index] && index > 0) {
- inputRefs.current[index - 1].focus();
- }
- };
+    const handleVerify = async (code) => {
+        setLoading(true);
+        try {
+            const response = await authApi.verifyOTP(email, code);
+            if (response.data.success) {
+                toast.success('OTP Verified Successfully');
+                onNext(response.data.resetToken);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Invalid OTP');
+        } finally {
+            setLoading(false);
+        }
+    };
 
- const handlePaste = (e) => {
- const data = e.clipboardData.getData('text').substring(0, 6);
- if (!/^\d+$/.test(data)) return;
+    const handleResend = async () => {
+        if (timer > 0) return;
+        setLoading(true);
+        try {
+            await authApi.forgotPassword(email);
+            toast.success('New OTP sent');
+            setTimer(60);
+        } catch (error) {
+            toast.error('Failed to resend OTP');
+        } finally {
+            setLoading(false);
+        }
+    };
 
- const newOtp = [...otp];
- data.split('').forEach((char, i) => {
- if (i < 6) newOtp[i] = char;
- });
- setOtp(newOtp);
- 
- if (data.length === 6) {
- handleVerify(data);
- } else {
- inputRefs.current[data.length].focus();
- }
- };
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-md space-y-8 p-8 glass rounded-3xl shadow-2xl"
+        >
+            <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900">Verify Identity</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                    Enter the code sent to {email}
+                </p>
+            </div>
 
- const handleVerify = async (otpValue) => {
- setIsLoading(true);
- try {
- await authApi.verifyOtp({ email, otp: otpValue });
- toast.success('Verification successful!');
- navigate('/login');
- } catch (error) {
- toast.error(error.response?.data?.message || 'Invalid OTP');
- setOtp(['', '', '', '', '', '']);
- inputRefs.current[0].focus();
- } finally {
- setIsLoading(false);
- }
- };
+            <div className="mt-8 space-y-6">
+                <div className="flex justify-between gap-2">
+                    {otp.map((digit, idx) => (
+                        <input
+                            key={idx}
+                            ref={el => inputRefs.current[idx] = el}
+                            type="text"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handleChange(idx, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(idx, e)}
+                            className="w-12 h-14 border border-gray-300 rounded-xl text-center text-xl font-bold focus:ring-2 focus:ring-secondary focus:border-transparent transition-all bg-white/50 backdrop-blur-sm"
+                        />
+                    ))}
+                </div>
 
- return (
- <motion.div 
- initial={{ opacity: 0, scale: 0.95 }}
- animate={{ opacity: 1, scale: 1 }}
- className="w-full max-w-md p-8 glass rounded-3xl shadow-2xl text-center"
- >
- <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 mb-6">
- <ShieldCheck className="h-10 w-10 text-secondary" />
- </div>
- 
- <h2 className="text-3xl font-bold text-gray-900">Verify OTP</h2>
- <p className="mt-2 text-sm text-gray-600">
- We've sent a 6-digit code to <br />
- <span className="font-semibold text-gray-900">{email}</span>
- </p>
+                <button
+                    onClick={() => handleVerify(otp.join(''))}
+                    disabled={loading || otp.some(d => !d)}
+                    className="w-full btn-premium bg-gradient-premium text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="animate-spin h-5 w-5" />
+                            Verifying...
+                        </>
+                    ) : (
+                        'Verify OTP'
+                    )}
+                </button>
 
- <div className="mt-8 flex justify-between gap-2">
- {otp.map((digit, index) => (
- <input
- key={index}
- ref={(el) => (inputRefs.current[index] = el)}
- type="text"
- maxLength="1"
- value={digit}
- onChange={(e) => handleChange(index, e.target.value)}
- onKeyDown={(e) => handleKeyDown(index, e)}
- onPaste={handlePaste}
- className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl bg-white/50 focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all"
- />
- ))}
- </div>
-
- <button
- onClick={() => handleVerify(otp.join(''))}
- disabled={isLoading || otp.some(d => d === '')}
- className="mt-8 w-full btn-premium bg-gradient-premium text-white py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
- >
- {isLoading ? (
- <>
- <Loader2 className="animate-spin h-5 w-5" />
- Verifying...
- </>
- ) : (
- 'Verify & Proceed'
- )}
- </button>
-
- <div className="mt-6">
- <p className="text-sm text-gray-600">
- Didn't receive the code?{' '}
- <button 
- onClick={() => {/* Resend logic */}}
- className="text-secondary font-semibold hover:underline"
- >
- Resend OTP
- </button>
- </p>
- </div>
- </motion.div>
- );
+                <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                        Didn't receive code? {timer > 0 ? (
+                            <span className="text-secondary font-medium">Resend in {timer}s</span>
+                        ) : (
+                            <button onClick={handleResend} className="text-secondary font-bold hover:text-accent transition-colors">Resend OTP</button>
+                        )}
+                    </p>
+                </div>
+            </div>
+        </motion.div>
+    );
 };
 
 export default VerifyOtpForm;

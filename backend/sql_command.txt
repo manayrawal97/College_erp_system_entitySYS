@@ -1,0 +1,500 @@
+-- ================================================================
+--  EntitySYS — Seed Data
+--  Run this ONCE on your entitysys database.
+--
+--  Existing data this relies on:
+--    users        → ids 1-13  (admin/faculty/student)
+--    courses      → ids 1-5   (CS301, CS302, CS303, CS501, CS502)
+--    faculty_profiles → user_id 2 (Dr. Rajesh Kumar, FAC001)
+--                       user_id 10 (Dr. V. Narayanan, FAC002)
+--    student_profiles → user_ids 3,5,6,8,11,12,13
+-- ================================================================
+
+USE entitysys;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ================================================================
+-- 0. ENROLLMENTS  (required so the app knows who is in which course)
+-- ================================================================
+INSERT INTO enrollments (student_id, course_id, enrollment_date, status) VALUES
+-- CS301 — Data Structures & Algorithms  (faculty: Rajesh Kumar)
+(3,  1, '2026-01-10', 'active'),   -- Manay
+(5,  1, '2026-01-10', 'active'),   -- Jackal
+(8,  1, '2026-01-10', 'active'),   -- Nik Joe
+(12, 1, '2026-01-10', 'active'),   -- Shivam D
+
+-- CS302 — Database Management Systems  (faculty: Rajesh Kumar)
+(3,  2, '2026-01-10', 'active'),   -- Manay
+(5,  2, '2026-01-10', 'active'),   -- Jackal
+(8,  2, '2026-01-10', 'active'),   -- Nik Joe
+(11, 2, '2026-01-10', 'active'),   -- Cris R
+
+-- CS303 — Operating Systems  (faculty: Rajesh Kumar)
+(5,  3, '2026-01-10', 'active'),   -- Jackal
+(8,  3, '2026-01-10', 'active'),   -- Nik Joe
+(12, 3, '2026-01-10', 'active'),   -- Shivam D
+(13, 3, '2026-01-10', 'active'),   -- Emmanuel
+
+-- CS501 — Machine Learning  (faculty: Dr. V. Narayanan)
+(6,  4, '2026-01-10', 'active'),   -- Manay Rawal
+(8,  4, '2026-01-10', 'active'),   -- Nik Joe
+(13, 4, '2026-01-10', 'active'),   -- Emmanuel
+
+-- CS502 — Computer Networks  (faculty: Dr. V. Narayanan)
+(6,  5, '2026-01-10', 'active'),   -- Manay Rawal
+(11, 5, '2026-01-10', 'active'),   -- Cris R
+(12, 5, '2026-01-10', 'active'),   -- Shivam D
+(13, 5, '2026-01-10', 'active');   -- Emmanuel
+
+
+-- ================================================================
+-- 1. COURSE ASSIGNMENTS
+--    Dr. Rajesh Kumar  → CS301, CS302, CS303  (sem 3 core)
+--    Dr. V. Narayanan  → CS501, CS502          (sem 5 advanced)
+-- ================================================================
+INSERT INTO course_assignments (faculty_id, course_id, section, academic_year) VALUES
+(2,  1, 'A', '2025-2026'),   -- Rajesh Kumar → CS301
+(2,  2, 'A', '2025-2026'),   -- Rajesh Kumar → CS302
+(2,  3, 'B', '2025-2026'),   -- Rajesh Kumar → CS303
+(10, 4, 'A', '2025-2026'),   -- V. Narayanan → CS501 ML
+(10, 5, 'A', '2025-2026');   -- V. Narayanan → CS502 CN
+
+
+-- ================================================================
+-- 2. ATTENDANCE  (10 class dates: April–June 2026)
+--
+--  Course 1 (CS301) – students: 3, 5, 8, 12 – marked by faculty 2
+--  Course 2 (CS302) – students: 3, 5, 8, 11 – marked by faculty 2
+--  Course 3 (CS303) – students: 5, 8, 12, 13 – marked by faculty 2
+--  Course 4 (CS501) – students: 6, 8, 13     – marked by faculty 10
+--  Course 5 (CS502) – students: 6, 11, 12, 13 – marked by faculty 10
+--
+--  Attendance legend (% = present+late / total):
+--    Nik Joe   (8)  → near 100% across all courses ✅
+--    Manay     (3)  → ~80–90%                       ✅
+--    Jackal    (5)  → ~70%  (borderline)            ⚠
+--    Shivam   (12)  → ~70–80%                       ⚠
+--    Cris     (11)  → ~80%                          ✅
+--    Manay R   (6)  → 100% (sem 8, very sincere)   ✅
+--    Emmanuel (13)  → 30–40% (attendance crisis)   🚨
+-- ================================================================
+
+-- ── CS301: Data Structures & Algorithms ──────────────────────
+INSERT INTO attendance (student_id, course_id, date, status, marked_by_faculty_id) VALUES
+-- Manay (3): P P L P A P P P A P → 80%
+(3, 1, '2026-04-01', 'present', 2),(3, 1, '2026-04-08', 'present', 2),
+(3, 1, '2026-04-15', 'late',    2),(3, 1, '2026-04-22', 'present', 2),
+(3, 1, '2026-04-29', 'absent',  2),(3, 1, '2026-05-06', 'present', 2),
+(3, 1, '2026-05-13', 'present', 2),(3, 1, '2026-05-20', 'present', 2),
+(3, 1, '2026-05-27', 'absent',  2),(3, 1, '2026-06-03', 'present', 2),
+
+-- Jackal (5): P A P P A P L A P P → 70%
+(5, 1, '2026-04-01', 'present', 2),(5, 1, '2026-04-08', 'absent',  2),
+(5, 1, '2026-04-15', 'present', 2),(5, 1, '2026-04-22', 'present', 2),
+(5, 1, '2026-04-29', 'absent',  2),(5, 1, '2026-05-06', 'present', 2),
+(5, 1, '2026-05-13', 'late',    2),(5, 1, '2026-05-20', 'absent',  2),
+(5, 1, '2026-05-27', 'present', 2),(5, 1, '2026-06-03', 'present', 2),
+
+-- Nik Joe (8): P P P P P P L P P P → 100%
+(8, 1, '2026-04-01', 'present', 2),(8, 1, '2026-04-08', 'present', 2),
+(8, 1, '2026-04-15', 'present', 2),(8, 1, '2026-04-22', 'present', 2),
+(8, 1, '2026-04-29', 'present', 2),(8, 1, '2026-05-06', 'present', 2),
+(8, 1, '2026-05-13', 'late',    2),(8, 1, '2026-05-20', 'present', 2),
+(8, 1, '2026-05-27', 'present', 2),(8, 1, '2026-06-03', 'present', 2),
+
+-- Shivam (12): P P A L P A P P P P → 80%
+(12, 1, '2026-04-01', 'present', 2),(12, 1, '2026-04-08', 'present', 2),
+(12, 1, '2026-04-15', 'absent',  2),(12, 1, '2026-04-22', 'late',    2),
+(12, 1, '2026-04-29', 'present', 2),(12, 1, '2026-05-06', 'absent',  2),
+(12, 1, '2026-05-13', 'present', 2),(12, 1, '2026-05-20', 'present', 2),
+(12, 1, '2026-05-27', 'present', 2),(12, 1, '2026-06-03', 'present', 2);
+
+-- ── CS302: Database Management Systems ───────────────────────
+INSERT INTO attendance (student_id, course_id, date, status, marked_by_faculty_id) VALUES
+-- Manay (3): P P P A P P P L P P → 90%
+(3, 2, '2026-04-01', 'present', 2),(3, 2, '2026-04-08', 'present', 2),
+(3, 2, '2026-04-15', 'present', 2),(3, 2, '2026-04-22', 'absent',  2),
+(3, 2, '2026-04-29', 'present', 2),(3, 2, '2026-05-06', 'present', 2),
+(3, 2, '2026-05-13', 'present', 2),(3, 2, '2026-05-20', 'late',    2),
+(3, 2, '2026-05-27', 'present', 2),(3, 2, '2026-06-03', 'present', 2),
+
+-- Jackal (5): A P P P A P P A P L → 70%
+(5, 2, '2026-04-01', 'absent',  2),(5, 2, '2026-04-08', 'present', 2),
+(5, 2, '2026-04-15', 'present', 2),(5, 2, '2026-04-22', 'present', 2),
+(5, 2, '2026-04-29', 'absent',  2),(5, 2, '2026-05-06', 'present', 2),
+(5, 2, '2026-05-13', 'present', 2),(5, 2, '2026-05-20', 'absent',  2),
+(5, 2, '2026-05-27', 'present', 2),(5, 2, '2026-06-03', 'late',    2),
+
+-- Nik Joe (8): P P P P P P P L P P → 100%
+(8, 2, '2026-04-01', 'present', 2),(8, 2, '2026-04-08', 'present', 2),
+(8, 2, '2026-04-15', 'present', 2),(8, 2, '2026-04-22', 'present', 2),
+(8, 2, '2026-04-29', 'present', 2),(8, 2, '2026-05-06', 'present', 2),
+(8, 2, '2026-05-13', 'present', 2),(8, 2, '2026-05-20', 'late',    2),
+(8, 2, '2026-05-27', 'present', 2),(8, 2, '2026-06-03', 'present', 2),
+
+-- Cris R (11): P A P L P P A L P P → 80%
+(11, 2, '2026-04-01', 'present', 2),(11, 2, '2026-04-08', 'absent',  2),
+(11, 2, '2026-04-15', 'present', 2),(11, 2, '2026-04-22', 'late',    2),
+(11, 2, '2026-04-29', 'present', 2),(11, 2, '2026-05-06', 'present', 2),
+(11, 2, '2026-05-13', 'absent',  2),(11, 2, '2026-05-20', 'late',    2),
+(11, 2, '2026-05-27', 'present', 2),(11, 2, '2026-06-03', 'present', 2);
+
+-- ── CS303: Operating Systems ──────────────────────────────────
+INSERT INTO attendance (student_id, course_id, date, status, marked_by_faculty_id) VALUES
+-- Jackal (5): P P L P P A P P A P → 80%
+(5, 3, '2026-04-01', 'present', 2),(5, 3, '2026-04-08', 'present', 2),
+(5, 3, '2026-04-15', 'late',    2),(5, 3, '2026-04-22', 'present', 2),
+(5, 3, '2026-04-29', 'present', 2),(5, 3, '2026-05-06', 'absent',  2),
+(5, 3, '2026-05-13', 'present', 2),(5, 3, '2026-05-20', 'present', 2),
+(5, 3, '2026-05-27', 'absent',  2),(5, 3, '2026-06-03', 'present', 2),
+
+-- Nik Joe (8): P P P P P P P P P L → 100%
+(8, 3, '2026-04-01', 'present', 2),(8, 3, '2026-04-08', 'present', 2),
+(8, 3, '2026-04-15', 'present', 2),(8, 3, '2026-04-22', 'present', 2),
+(8, 3, '2026-04-29', 'present', 2),(8, 3, '2026-05-06', 'present', 2),
+(8, 3, '2026-05-13', 'present', 2),(8, 3, '2026-05-20', 'present', 2),
+(8, 3, '2026-05-27', 'present', 2),(8, 3, '2026-06-03', 'late',    2),
+
+-- Shivam (12): P A P P L A P A P P → 70%
+(12, 3, '2026-04-01', 'present', 2),(12, 3, '2026-04-08', 'absent',  2),
+(12, 3, '2026-04-15', 'present', 2),(12, 3, '2026-04-22', 'present', 2),
+(12, 3, '2026-04-29', 'late',    2),(12, 3, '2026-05-06', 'absent',  2),
+(12, 3, '2026-05-13', 'present', 2),(12, 3, '2026-05-20', 'absent',  2),
+(12, 3, '2026-05-27', 'present', 2),(12, 3, '2026-06-03', 'present', 2),
+
+-- Emmanuel (13): A A P A P A P A A P → 30% 🚨 ATTENDANCE WARNING
+(13, 3, '2026-04-01', 'absent',  2),(13, 3, '2026-04-08', 'absent',  2),
+(13, 3, '2026-04-15', 'present', 2),(13, 3, '2026-04-22', 'absent',  2),
+(13, 3, '2026-04-29', 'present', 2),(13, 3, '2026-05-06', 'absent',  2),
+(13, 3, '2026-05-13', 'present', 2),(13, 3, '2026-05-20', 'absent',  2),
+(13, 3, '2026-05-27', 'absent',  2),(13, 3, '2026-06-03', 'present', 2);
+
+-- ── CS501: Machine Learning ───────────────────────────────────
+INSERT INTO attendance (student_id, course_id, date, status, marked_by_faculty_id) VALUES
+-- Manay Rawal (6): P P P L P P P P L P → 100%
+(6, 4, '2026-04-01', 'present', 10),(6, 4, '2026-04-08', 'present', 10),
+(6, 4, '2026-04-15', 'present', 10),(6, 4, '2026-04-22', 'late',    10),
+(6, 4, '2026-04-29', 'present', 10),(6, 4, '2026-05-06', 'present', 10),
+(6, 4, '2026-05-13', 'present', 10),(6, 4, '2026-05-20', 'present', 10),
+(6, 4, '2026-05-27', 'late',    10),(6, 4, '2026-06-03', 'present', 10),
+
+-- Nik Joe (8): P P P P L P P P P P → 100%
+(8, 4, '2026-04-01', 'present', 10),(8, 4, '2026-04-08', 'present', 10),
+(8, 4, '2026-04-15', 'present', 10),(8, 4, '2026-04-22', 'present', 10),
+(8, 4, '2026-04-29', 'late',    10),(8, 4, '2026-05-06', 'present', 10),
+(8, 4, '2026-05-13', 'present', 10),(8, 4, '2026-05-20', 'present', 10),
+(8, 4, '2026-05-27', 'present', 10),(8, 4, '2026-06-03', 'present', 10),
+
+-- Emmanuel (13): P A P A A P A P A P → 40% 🚨
+(13, 4, '2026-04-01', 'present', 10),(13, 4, '2026-04-08', 'absent',  10),
+(13, 4, '2026-04-15', 'present', 10),(13, 4, '2026-04-22', 'absent',  10),
+(13, 4, '2026-04-29', 'absent',  10),(13, 4, '2026-05-06', 'present', 10),
+(13, 4, '2026-05-13', 'absent',  10),(13, 4, '2026-05-20', 'present', 10),
+(13, 4, '2026-05-27', 'absent',  10),(13, 4, '2026-06-03', 'present', 10);
+
+-- ── CS502: Computer Networks ──────────────────────────────────
+INSERT INTO attendance (student_id, course_id, date, status, marked_by_faculty_id) VALUES
+-- Manay Rawal (6): P P L P P P P L P P → 100%
+(6, 5, '2026-04-01', 'present', 10),(6, 5, '2026-04-08', 'present', 10),
+(6, 5, '2026-04-15', 'late',    10),(6, 5, '2026-04-22', 'present', 10),
+(6, 5, '2026-04-29', 'present', 10),(6, 5, '2026-05-06', 'present', 10),
+(6, 5, '2026-05-13', 'present', 10),(6, 5, '2026-05-20', 'late',    10),
+(6, 5, '2026-05-27', 'present', 10),(6, 5, '2026-06-03', 'present', 10),
+
+-- Cris R (11): P P P A P L P A P P → 80%
+(11, 5, '2026-04-01', 'present', 10),(11, 5, '2026-04-08', 'present', 10),
+(11, 5, '2026-04-15', 'present', 10),(11, 5, '2026-04-22', 'absent',  10),
+(11, 5, '2026-04-29', 'present', 10),(11, 5, '2026-05-06', 'late',    10),
+(11, 5, '2026-05-13', 'present', 10),(11, 5, '2026-05-20', 'absent',  10),
+(11, 5, '2026-05-27', 'present', 10),(11, 5, '2026-06-03', 'present', 10),
+
+-- Shivam (12): A P P P P L A P P P → 80%
+(12, 5, '2026-04-01', 'absent',  10),(12, 5, '2026-04-08', 'present', 10),
+(12, 5, '2026-04-15', 'present', 10),(12, 5, '2026-04-22', 'present', 10),
+(12, 5, '2026-04-29', 'present', 10),(12, 5, '2026-05-06', 'late',    10),
+(12, 5, '2026-05-13', 'absent',  10),(12, 5, '2026-05-20', 'present', 10),
+(12, 5, '2026-05-27', 'present', 10),(12, 5, '2026-06-03', 'present', 10),
+
+-- Emmanuel (13): P A A P A P A A P A → 30% 🚨
+(13, 5, '2026-04-01', 'present', 10),(13, 5, '2026-04-08', 'absent',  10),
+(13, 5, '2026-04-15', 'absent',  10),(13, 5, '2026-04-22', 'present', 10),
+(13, 5, '2026-04-29', 'absent',  10),(13, 5, '2026-05-06', 'present', 10),
+(13, 5, '2026-05-13', 'absent',  10),(13, 5, '2026-05-20', 'absent',  10),
+(13, 5, '2026-05-27', 'present', 10),(13, 5, '2026-06-03', 'absent',  10);
+
+
+-- ================================================================
+-- 3. EXAMS  (3 per course = 15 total)
+--    Midterm + Quiz/Assignment (past) + Final (upcoming)
+--    All created by admin user_id = 1
+-- ================================================================
+INSERT INTO exams (course_id, exam_name, exam_date, total_marks, exam_type, created_by) VALUES
+-- CS301 — Data Structures & Algorithms
+(1, 'CS301 Mid-Semester Exam',  '2026-03-15', 50,  'midterm',    1),  -- exam_id 1
+(1, 'CS301 Unit Test 1',        '2026-04-10', 20,  'quiz',       1),  -- exam_id 2
+(1, 'CS301 End-Semester Exam',  '2026-06-20', 100, 'final',      1),  -- exam_id 3
+
+-- CS302 — Database Management Systems
+(2, 'CS302 Mid-Semester Exam',  '2026-03-17', 50,  'midterm',    1),  -- exam_id 4
+(2, 'CS302 Practical Assignment','2026-04-15', 30, 'assignment', 1),  -- exam_id 5
+(2, 'CS302 End-Semester Exam',  '2026-06-22', 100, 'final',      1),  -- exam_id 6
+
+-- CS303 — Operating Systems
+(3, 'CS303 Mid-Semester Exam',  '2026-03-20', 50,  'midterm',    1),  -- exam_id 7
+(3, 'CS303 Unit Test 1',        '2026-04-20', 25,  'quiz',       1),  -- exam_id 8
+(3, 'CS303 End-Semester Exam',  '2026-06-25', 100, 'final',      1),  -- exam_id 9
+
+-- CS501 — Machine Learning
+(4, 'CS501 Mid-Semester Exam',  '2026-03-22', 60,  'midterm',    1),  -- exam_id 10
+(4, 'CS501 Project Milestone 1','2026-04-25', 20,  'assignment', 1),  -- exam_id 11
+(4, 'CS501 End-Semester Exam',  '2026-06-28', 100, 'final',      1),  -- exam_id 12
+
+-- CS502 — Computer Networks
+(5, 'CS502 Mid-Semester Exam',  '2026-03-25', 50,  'midterm',    1),  -- exam_id 13
+(5, 'CS502 Unit Test 1',        '2026-04-28', 20,  'quiz',       1),  -- exam_id 14
+(5, 'CS502 End-Semester Exam',  '2026-06-30', 100, 'final',      1);  -- exam_id 15
+
+
+-- ================================================================
+-- 4. GRADES  (only for PAST exams 1,2,4,5,7,8,10,11,13,14)
+--            Finals (3,6,9,12,15) are upcoming — no grades yet
+--
+--  Grade scale used in gradesController.js:
+--    ≥90% → A+  | ≥80% → A  | ≥70% → B+  | ≥60% → B
+--    ≥50% → C+  | ≥40% → C  | ≥33% → D   | <33% → F
+--
+--  Faculty 2  enters grades for courses 1,2,3
+--  Faculty 10 enters grades for courses 4,5
+-- ================================================================
+
+-- Exam 1: CS301 Midterm (total=50)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(3,  1, 38.00, 'B+', 2),   -- Manay:    76% → B+
+(5,  1, 31.00, 'B',  2),   -- Jackal:   62% → B
+(8,  1, 47.00, 'A+', 2),   -- Nik Joe:  94% → A+
+(12, 1, 36.00, 'B+', 2);   -- Shivam:   72% → B+
+
+-- Exam 2: CS301 Unit Test 1 (total=20)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(3,  2, 15.00, 'B+', 2),   -- Manay:    75% → B+
+(5,  2, 12.00, 'B',  2),   -- Jackal:   60% → B
+(8,  2, 19.00, 'A+', 2),   -- Nik Joe:  95% → A+
+(12, 2, 14.00, 'B+', 2);   -- Shivam:   70% → B+
+
+-- Exam 4: CS302 Midterm (total=50)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(3,  4, 42.00, 'A',  2),   -- Manay:    84% → A
+(5,  4, 28.00, 'C+', 2),   -- Jackal:   56% → C+
+(8,  4, 46.00, 'A+', 2),   -- Nik Joe:  92% → A+
+(11, 4, 34.00, 'B',  2);   -- Cris R:   68% → B
+
+-- Exam 5: CS302 Practical Assignment (total=30)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(3,  5, 25.00, 'A',  2),   -- Manay:    83% → A
+(5,  5, 17.00, 'C+', 2),   -- Jackal:   57% → C+
+(8,  5, 28.00, 'A+', 2),   -- Nik Joe:  93% → A+
+(11, 5, 22.00, 'B+', 2);   -- Cris R:   73% → B+
+
+-- Exam 7: CS303 Midterm (total=50)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(5,  7, 38.00, 'B+', 2),   -- Jackal:    76% → B+
+(8,  7, 46.00, 'A+', 2),   -- Nik Joe:   92% → A+
+(12, 7, 33.00, 'B',  2),   -- Shivam:    66% → B
+(13, 7, 17.00, 'D',  2);   -- Emmanuel:  34% → D ⚠
+
+-- Exam 8: CS303 Unit Test 1 (total=25)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(5,  8, 19.00, 'B+', 2),   -- Jackal:    76% → B+
+(8,  8, 24.00, 'A+', 2),   -- Nik Joe:   96% → A+
+(12, 8, 16.00, 'B',  2),   -- Shivam:    64% → B
+(13, 8,  9.00, 'D',  2);   -- Emmanuel:  36% → D ⚠
+
+-- Exam 10: CS501 Midterm (total=60)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(6,  10, 52.00, 'A',  10),  -- Manay Rawal: 87% → A
+(8,  10, 56.00, 'A+', 10),  -- Nik Joe:     93% → A+
+(13, 10, 24.00, 'C',  10);  -- Emmanuel:    40% → C ⚠
+
+-- Exam 11: CS501 Project Milestone 1 (total=20)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(6,  11, 18.00, 'A+', 10),  -- Manay Rawal: 90% → A+
+(8,  11, 19.00, 'A+', 10),  -- Nik Joe:     95% → A+
+(13, 11, 11.00, 'C+', 10);  -- Emmanuel:    55% → C+
+
+-- Exam 13: CS502 Midterm (total=50)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(6,  13, 44.00, 'A',  10),  -- Manay Rawal: 88% → A
+(11, 13, 36.00, 'B+', 10),  -- Cris R:      72% → B+
+(12, 13, 31.00, 'B',  10),  -- Shivam:      62% → B
+(13, 13, 14.00, 'F',  10);  -- Emmanuel:    28% → F 🚨
+
+-- Exam 14: CS502 Unit Test 1 (total=20)
+INSERT INTO grades (student_id, exam_id, marks_obtained, grade, entered_by) VALUES
+(6,  14, 18.00, 'A+', 10),  -- Manay Rawal: 90% → A+
+(11, 14, 14.00, 'B+', 10),  -- Cris R:      70% → B+
+(12, 14, 12.00, 'B',  10),  -- Shivam:      60% → B
+(13, 14,  7.00, 'D',  10);  -- Emmanuel:    35% → D ⚠
+
+
+-- ================================================================
+-- 5. FEE TRANSACTIONS  ($12 per exam registration)
+--    Mix of paid and pending for realistic dashboard numbers
+-- ================================================================
+INSERT INTO fee_transactions
+  (student_id, amount, fee_type, payment_date, status, receipt_no, exam_id)
+VALUES
+-- Manay (3) — paid CS301 and CS302 midterm fees
+(3,  12.00, 'exam', '2026-03-10 09:15:00', 'paid',    'RCP-20260310-MNY301', 1),
+(3,  12.00, 'exam', '2026-03-12 10:30:00', 'paid',    'RCP-20260312-MNY302', 4),
+
+-- Jackal (5) — paid CS301 only, CS303 still pending
+(5,  12.00, 'exam', '2026-03-11 11:00:00', 'paid',    'RCP-20260311-JCK301', 1),
+(5,  12.00, 'exam', '2026-03-14 14:45:00', 'pending', 'RCP-20260314-JCK303', 7),
+
+-- Nik Joe (8) — paid all 5 midterm fees (best student)
+(8,  12.00, 'exam', '2026-03-09 08:00:00', 'paid',    'RCP-20260309-NIK301', 1),
+(8,  12.00, 'exam', '2026-03-09 08:05:00', 'paid',    'RCP-20260309-NIK302', 4),
+(8,  12.00, 'exam', '2026-03-09 08:10:00', 'paid',    'RCP-20260309-NIK303', 7),
+(8,  12.00, 'exam', '2026-03-09 08:15:00', 'paid',    'RCP-20260309-NIK501', 10),
+(8,  12.00, 'exam', '2026-03-09 08:20:00', 'paid',    'RCP-20260309-NIK502', 13),
+
+-- Manay Rawal (6) — paid CS501 and CS502 fees
+(6,  12.00, 'exam', '2026-03-13 09:30:00', 'paid',    'RCP-20260313-MR501',  10),
+(6,  12.00, 'exam', '2026-03-13 09:35:00', 'paid',    'RCP-20260313-MR502',  13),
+
+-- Cris R (11) — paid CS302, CS502 pending
+(11, 12.00, 'exam', '2026-03-15 16:00:00', 'paid',    'RCP-20260315-CRS302', 4),
+(11, 12.00, 'exam', '2026-03-18 10:00:00', 'pending', 'RCP-20260318-CRS502', 13),
+
+-- Shivam (12) — paid CS301, CS503 pending, CS502 pending
+(12, 12.00, 'exam', '2026-03-10 13:00:00', 'paid',    'RCP-20260310-SHV301', 1),
+(12, 12.00, 'exam', '2026-03-20 17:00:00', 'pending', 'RCP-20260320-SHV303', 7),
+
+-- Emmanuel (13) — only paid CS303, everything else pending (financial issues)
+(13, 12.00, 'exam', '2026-03-19 12:00:00', 'paid',    'RCP-20260319-EMM303', 7),
+(13, 12.00, 'exam', '2026-03-22 09:00:00', 'pending', 'RCP-20260322-EMM501', 10),
+(13, 12.00, 'exam', '2026-03-25 09:00:00', 'pending', 'RCP-20260325-EMM502', 13);
+
+
+-- ================================================================
+-- 6. NOTICES  (college-wide + course-specific, both roles)
+-- ================================================================
+INSERT INTO notices
+  (title, content, posted_by_user_id, target_role, target_course_id, is_archived)
+VALUES
+-- Admin — college-wide notices
+('End-Semester Examination Schedule Released',
+ 'The end-semester examinations for all courses will commence from June 20, 2026. Students must carry their admit card and college ID. No electronic devices are permitted inside the examination hall. Hall tickets will be issued from June 16 onward from the exam cell.',
+ 1, 'all', NULL, FALSE),
+
+('Summer Internship Opportunity — Last Date June 25',
+ 'Applications are open for the Summer Internship Program 2026 with partner companies including TechCorp, InnoSoft, and DataVision. Eligible: 3rd semester and above. Apply via the student portal before June 25, 2026. Shortlisted candidates will be notified by June 28.',
+ 1, 'student', NULL, FALSE),
+
+('Faculty Development Program — July 5 to July 10',
+ 'The annual Faculty Development Program will be held from July 5 to July 10, 2026. Attendance is mandatory for all teaching faculty. Topics include advanced pedagogy, research methodology, and AI tools in education. Accommodation will be provided.',
+ 1, 'faculty', NULL, FALSE),
+
+('Library Closed on June 19 — Maintenance',
+ 'The central library will remain closed on June 19, 2026 (Thursday) for annual maintenance and cataloguing. Digital library resources remain available at library.entitysys.edu. Inconvenience is regretted.',
+ 1, 'all', NULL, FALSE),
+
+-- Faculty — course-specific notices
+('CS301: Extra Class on June 21 — Arrays & Trees Review',
+ 'Dear students, an extra class for CS301 (Data Structures & Algorithms) has been scheduled for June 21, 2026 at 10:00 AM in Lab 204. Topics covered: Array optimisations, Binary Search Trees, and AVL Trees. Attendance will be marked. Please bring your laptops.',
+ 2, 'student', 1, FALSE),
+
+('CS501: Project Submission Deadline Extended to June 22',
+ 'This is to inform all CS501 (Machine Learning) students that the final project submission deadline has been extended from June 18 to June 22, 2026 at 11:59 PM. Submit your GitHub repository link and PDF report on the course portal. No further extensions will be granted.',
+ 10, 'student', 4, FALSE),
+
+('CS303: Important — OS Lab Viva on June 18',
+ 'All CS303 students are reminded that the Operating Systems Lab Viva is scheduled for June 18, 2026 at 2:00 PM in Lab 301. You must demonstrate your shell scripting and process scheduling assignments. Prepare all lab files. Absence without prior notice will result in zero marks.',
+ 2, 'student', 3, FALSE);
+
+
+-- ================================================================
+-- 7. COURSE MATERIALS  (2 per course = 10 total)
+--    file_url points to a hypothetical storage path
+-- ================================================================
+INSERT INTO course_materials
+  (course_id, uploaded_by_faculty_id, title, file_url, file_type, description)
+VALUES
+-- CS301 — Data Structures & Algorithms
+(1, 2, 'CS301 Course Syllabus 2025-26',
+ '/materials/cs301/CS301_Syllabus_2025-26.pdf',
+ 'syllabus',
+ 'Complete course syllabus including unit-wise topics, references, evaluation scheme, and important dates.'),
+
+(1, 2, 'Unit 2 — Trees and Graphs (Lecture Notes)',
+ '/materials/cs301/CS301_Unit2_Trees_Graphs.pdf',
+ 'notes',
+ 'Detailed notes covering Binary Trees, BST, AVL Trees, Graph traversal (BFS/DFS), and Shortest Path algorithms.'),
+
+-- CS302 — Database Management Systems
+(2, 2, 'CS302 Course Syllabus 2025-26',
+ '/materials/cs302/CS302_Syllabus_2025-26.pdf',
+ 'syllabus',
+ 'Course outline covering ER modelling, relational algebra, SQL, normalization, transactions, and indexing.'),
+
+(2, 2, 'SQL Practice Problems — Set 1',
+ '/materials/cs302/CS302_SQL_PracticeSet1.pdf',
+ 'assignment',
+ '25 SQL queries ranging from basic SELECT to complex multi-table JOINs and subqueries. Submit solutions by April 30.'),
+
+-- CS303 — Operating Systems
+(3, 2, 'CS303 Course Syllabus 2025-26',
+ '/materials/cs303/CS303_Syllabus_2025-26.pdf',
+ 'syllabus',
+ 'Topics: Process management, threading, deadlock, memory management, file systems, and I/O.'),
+
+(3, 2, 'Unit 3 — Memory Management (Slides)',
+ '/materials/cs303/CS303_Unit3_Memory_Management.pdf',
+ 'notes',
+ 'Lecture slides on paging, segmentation, page replacement algorithms (FIFO, LRU, Optimal), and virtual memory.'),
+
+-- CS501 — Machine Learning
+(4, 10, 'CS501 Course Syllabus 2025-26',
+ '/materials/cs501/CS501_Syllabus_2025-26.pdf',
+ 'syllabus',
+ 'Covers supervised/unsupervised learning, regression, classification, clustering, neural networks, and deep learning basics.'),
+
+(4, 10, 'Unit 4 — Neural Networks & Backpropagation',
+ '/materials/cs501/CS501_Unit4_NeuralNetworks.pdf',
+ 'notes',
+ 'Comprehensive notes on perceptrons, multi-layer networks, activation functions, backpropagation algorithm, and gradient descent.'),
+
+-- CS502 — Computer Networks
+(5, 10, 'CS502 Course Syllabus 2025-26',
+ '/materials/cs502/CS502_Syllabus_2025-26.pdf',
+ 'syllabus',
+ 'OSI model, TCP/IP, routing protocols, DNS, HTTP, network security fundamentals, and wireless networks.'),
+
+(5, 10, 'Unit 2 — TCP/IP and Routing Protocols',
+ '/materials/cs502/CS502_Unit2_TCPIP_Routing.pdf',
+ 'notes',
+ 'Detailed coverage of TCP/IP stack, IP addressing, subnetting, CIDR, RIP, OSPF, and BGP protocols with diagrams.');
+
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ================================================================
+--  VERIFICATION QUERIES — run these to confirm everything loaded
+-- ================================================================
+/*
+SELECT 'enrollments'       AS tbl, COUNT(*) AS rows FROM enrollments
+UNION ALL
+SELECT 'course_assignments',       COUNT(*) FROM course_assignments
+UNION ALL
+SELECT 'attendance',               COUNT(*) FROM attendance
+UNION ALL
+SELECT 'exams',                    COUNT(*) FROM exams
+UNION ALL
+SELECT 'grades',                   COUNT(*) FROM grades
+UNION ALL
+SELECT 'fee_transactions',         COUNT(*) FROM fee_transactions
+UNION ALL
+SELECT 'notices',                  COUNT(*) FROM notices
+UNION ALL
+SELECT 'course_materials',         COUNT(*) FROM course_materials;
+*/
