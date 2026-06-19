@@ -3,38 +3,81 @@ import { CalendarCheck, CheckCircle } from 'lucide-react';
 import { coursesApi, attendanceApi } from '../../services/api';
 import toast from 'react-hot-toast';
 
-const Attendance = ({ courses }) => {
-    const [selectedCourse, setSelectedCourse] = useState('');
+const Attendance = ({ courses, preselectedCourseId, onSaved }) => {
+    const [selectedCourse, setSelectedCourse] = useState(() => {
+        if (preselectedCourseId && preselectedCourseId !== 'null' && preselectedCourseId !== 'undefined') {
+            return String(preselectedCourseId);
+        }
+        if (courses.length > 0) {
+            return String(courses[0].id);
+        }
+        return '';
+    });
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(false);
     const [attendanceData, setAttendanceData] = useState({});
+    const [remarks, setRemarks] = useState({});
 
     useEffect(() => {
-        if (courses.length > 0 && !selectedCourse) {
-            setSelectedCourse(courses[0].id);
+        if (preselectedCourseId && preselectedCourseId !== 'null' && preselectedCourseId !== 'undefined') {
+            setSelectedCourse(String(preselectedCourseId));
+        } else if (courses.length > 0 && !selectedCourse) {
+            setSelectedCourse(String(courses[0].id));
         }
-    }, [courses]);
+    }, [courses, preselectedCourseId]);
 
     useEffect(() => {
-        if (selectedCourse) fetchStudents();
-    }, [selectedCourse]);
+        if (selectedCourse && selectedCourse !== 'null' && selectedCourse !== 'undefined') {
+            setStudents([]);
+            setAttendanceData({});
+            setRemarks({});
+            fetchStudentsAndAttendance();
+        } else {
+            setStudents([]);
+            setAttendanceData({});
+            setRemarks({});
+        }
+    }, [selectedCourse, date]);
 
-    const fetchStudents = async () => {
+    const fetchStudentsAndAttendance = async () => {
         try {
             setLoading(true);
-            const response = await coursesApi.getCourseStudents(selectedCourse);
-            if (response.data.success) {
-                setStudents(response.data.data);
-                // Initialize attendance data as present for all
-                const initial = {};
-                response.data.data.forEach(s => {
-                    initial[s.id] = 'Present';
-                });
-                setAttendanceData(initial);
+            // 1. Fetch enrolled students
+            const studentRes = await coursesApi.getCourseStudents(selectedCourse);
+            if (!studentRes.data.success) {
+                toast.error('Failed to load students');
+                return;
             }
+            const studentsList = studentRes.data.data;
+            setStudents(studentsList);
+
+            // Initialize default attendance
+            const initialAttendance = {};
+            const initialRemarks = {};
+            studentsList.forEach(s => {
+                initialAttendance[s.id] = 'Present';
+                initialRemarks[s.id] = '';
+            });
+
+            // 2. Fetch marked attendance for this course and date
+            const attendanceRes = await attendanceApi.getCourseAttendanceByDate(selectedCourse, date);
+            if (attendanceRes.data.success && attendanceRes.data.data) {
+                const records = attendanceRes.data.data;
+                if (records.length > 0) {
+                    records.forEach(r => {
+                        const capitalized = r.status.charAt(0).toUpperCase() + r.status.slice(1).toLowerCase();
+                        initialAttendance[r.student_id] = capitalized;
+                        initialRemarks[r.student_id] = r.remarks || '';
+                    });
+                }
+            }
+
+            setAttendanceData(initialAttendance);
+            setRemarks(initialRemarks);
         } catch (error) {
-            toast.error('Failed to load students');
+            console.error('Error loading attendance list:', error);
+            toast.error('Failed to load attendance records');
         } finally {
             setLoading(false);
         }
@@ -42,6 +85,10 @@ const Attendance = ({ courses }) => {
 
     const handleStatusChange = (studentId, status) => {
         setAttendanceData(prev => ({ ...prev, [studentId]: status }));
+    };
+
+    const handleRemarkChange = (studentId, text) => {
+        setRemarks(prev => ({ ...prev, [studentId]: text }));
     };
 
     const markAll = (status) => {
@@ -53,20 +100,22 @@ const Attendance = ({ courses }) => {
     const saveAttendance = async () => {
         try {
             const data = {
-                course_id: selectedCourse,
+                course_id: parseInt(selectedCourse),
                 date,
-                attendance: Object.entries(attendanceData).map(([student_id, status]) => ({
-                    student_id,
-                    status,
-                    remarks: ''
+                records: students.map(s => ({
+                    student_id: s.id,
+                    status: (attendanceData[s.id] || 'Present').toLowerCase(),
+                    remarks: remarks[s.id] || ''
                 }))
             };
             const response = await attendanceApi.mark(data);
             if (response.data.success) {
-                toast.success('Attendance marked successfully');
+                toast.success('Attendance saved successfully');
+                if (onSaved) onSaved();
             }
         } catch (error) {
-            toast.error('Failed to save attendance');
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to save attendance');
         }
     };
 
@@ -95,14 +144,14 @@ const Attendance = ({ courses }) => {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-4 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{students.length} Students Listed</span>
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{students.length} Students Enrolled</span>
                     <div className="flex gap-2">
                         <button onClick={() => markAll('Present')} className="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100">MARK ALL PRESENT</button>
                         <button onClick={() => markAll('Absent')} className="text-[10px] font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100">MARK ALL ABSENT</button>
                     </div>
                 </div>
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Loading students...</div>
+                    <div className="p-12 text-center text-gray-500 font-medium">Loading course students...</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
@@ -118,10 +167,10 @@ const Attendance = ({ courses }) => {
                                 {students.map((student) => (
                                     <tr key={student.id} className="hover:bg-gray-50/30 transition-colors">
                                         <td className="px-6 py-4 font-bold text-gray-900">{student.full_name}</td>
-                                        <td className="px-6 py-4 text-gray-500 text-sm font-medium">{student.enrollment_id || 'ENR202400' + student.id}</td>
+                                        <td className="px-6 py-4 text-gray-500 text-sm font-medium">{student.enrollment_id || 'ENR202600' + student.id}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-1">
-                                                {['Present', 'Absent', 'Late', 'Excused'].map(status => (
+                                                {['Present', 'Absent', 'Late'].map(status => (
                                                     <button
                                                         key={status}
                                                         onClick={() => handleStatusChange(student.id, status)}
@@ -138,7 +187,13 @@ const Attendance = ({ courses }) => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <input type="text" placeholder="Add note..." className="bg-transparent border-none text-sm text-gray-500 focus:ring-0 w-full" />
+                                            <input
+                                                type="text"
+                                                placeholder="Add note..."
+                                                value={remarks[student.id] || ''}
+                                                onChange={(e) => handleRemarkChange(student.id, e.target.value)}
+                                                className="bg-transparent border-none text-sm text-gray-500 focus:ring-0 w-full outline-none"
+                                            />
                                         </td>
                                     </tr>
                                 ))}
@@ -149,7 +204,8 @@ const Attendance = ({ courses }) => {
                 <div className="p-6 bg-gray-50/30 flex justify-end">
                     <button
                         onClick={saveAttendance}
-                        className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
+                        disabled={students.length === 0}
+                        className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <CheckCircle size={18} /> Save Attendance
                     </button>

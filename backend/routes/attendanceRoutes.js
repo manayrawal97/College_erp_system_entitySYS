@@ -16,6 +16,8 @@ router.use(authMiddleware);
 
 router.post('/mark', authorize('admin', 'faculty'), markValidation, ctrl.markAttendance);
 router.get('/student/:studentId', ctrl.getStudentAttendance);                    // students view own; faculty/admin view any
+router.get('/course/:courseId/today', authorize('admin', 'faculty'), ctrl.getTodayAttendance);
+router.get('/course/:courseId/date/:date', authorize('admin', 'faculty'), ctrl.getCourseAttendanceByDate);
 router.get('/course/:courseId', authorize('admin', 'faculty'), ctrl.getCourseAttendance);
 router.put('/:id', authorize('admin', 'faculty'), ctrl.updateAttendance);
 

@@ -16,6 +16,7 @@ router.use(authMiddleware);
 router.get('/', ctrl.getNotices);
 router.get('/faculty', authorize('admin', 'faculty'), ctrl.getFacultyNotices);
 router.post('/', authorize('admin', 'faculty'), noticeValidation, ctrl.createNotice);
+router.post('/:id/pin', authorize('admin', 'faculty'), ctrl.pinNotice);
 router.put('/:id',   authorize('admin', 'faculty'), ctrl.updateNotice);
 router.delete('/:id', authorize('admin', 'faculty'), ctrl.deleteNotice);
 

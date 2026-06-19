@@ -270,3 +270,44 @@ exports.enrollStudent = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/courses/:id/students — Get students enrolled in course
+// ─────────────────────────────────────────────────────────────
+exports.getCourseStudents = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verify course exists
+    const [course] = await pool.query('SELECT id FROM courses WHERE id = ?', [id]);
+    if (!course.length) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    // Faculty check: make sure they teach this course if role is faculty
+    if (req.user.role === 'faculty') {
+      const [assignment] = await pool.query(
+        'SELECT id FROM course_assignments WHERE faculty_id = ? AND course_id = ?',
+        [req.user.id, id]
+      );
+      if (!assignment.length) {
+        return res.status(403).json({ success: false, message: 'You are not assigned to this course' });
+      }
+    }
+
+    const [students] = await pool.query(
+      `SELECT u.id, u.full_name, u.email, u.phone, sp.enrollment_id, sp.current_semester, sp.parent_phone, sp.address
+       FROM users u
+       JOIN student_profiles sp ON u.id = sp.user_id
+       JOIN enrollments e ON u.id = e.student_id
+       WHERE e.course_id = ? AND e.status = 'active' AND u.is_active = 1
+       ORDER BY u.full_name`,
+      [id]
+    );
+
+    res.json({ success: true, data: students });
+  } catch (err) {
+    console.error('getCourseStudents error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching course students' });
+  }
+};

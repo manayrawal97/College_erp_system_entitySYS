@@ -13,7 +13,8 @@ exports.getStats = async (req, res) => {
         [studentsRows],
         [noticesRows],
         [pendingRows],
-        [examsRows]
+        [examsRows],
+        [attendanceRateRows]
       ] = await Promise.all([
         pool.query('SELECT COUNT(*) as count FROM course_assignments WHERE faculty_id = ?', [facultyId]),
         pool.query(`SELECT COUNT(DISTINCT e.student_id) as count 
@@ -30,7 +31,10 @@ exports.getStats = async (req, res) => {
         pool.query(`SELECT COUNT(*) as count 
                     FROM exams e
                     JOIN course_assignments ca ON e.course_id = ca.course_id
-                    WHERE ca.faculty_id = ? AND e.exam_date >= CURDATE()`, [facultyId])
+                    WHERE ca.faculty_id = ? AND e.exam_date >= CURDATE()`, [facultyId]),
+        pool.query(`SELECT COALESCE(ROUND(SUM(CASE WHEN a.status IN ('present', 'late') THEN 1 ELSE 0 END) / COUNT(*) * 100, 1), 0) as rate
+                    FROM attendance a
+                    WHERE a.course_id IN (SELECT course_id FROM course_assignments WHERE faculty_id = ?)`, [facultyId])
       ]);
 
       return res.json({
@@ -41,7 +45,7 @@ exports.getStats = async (req, res) => {
           noticesCount: noticesRows[0]?.count || 0,
           pendingGrades: pendingRows[0]?.count || 0,
           upcomingExams: examsRows[0]?.count || 0,
-          attendanceRate: 85 // Percentage
+          attendanceRate: Number(attendanceRateRows[0]?.rate || 0)
         }
       });
     }

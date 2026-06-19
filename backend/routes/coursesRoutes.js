@@ -21,9 +21,11 @@ router.use(authMiddleware);
 
 // Faculty: see their own assigned courses
 router.get('/faculty', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
+router.get('/faculty/assigned', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
 router.get('/faculty/:id/courses', authorize('admin', 'faculty'), ctrl.getFacultyCourses);
 
 router.get('/', ctrl.getCourses);
 router.get('/:id', ctrl.getCourseById);
- 
+router.get('/:id/students', authorize('admin', 'faculty'), ctrl.getCourseStudents);
+
 module.exports = router;

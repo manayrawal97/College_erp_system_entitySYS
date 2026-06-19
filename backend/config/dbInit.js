@@ -20,6 +20,30 @@ const initDb = async () => {
         // Execute the schema SQL (which includes CREATE DATABASE and USE)
         await connection.query(schema);
         
+        // Add new columns to notices table if they don't exist
+        const [columns] = await connection.query(`
+            SELECT COLUMN_NAME 
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = '${process.env.DB_NAME || "entitysys"}' AND TABLE_NAME = 'notices'
+        `);
+        const columnNames = columns.map(c => c.COLUMN_NAME);
+        if (!columnNames.includes('target_dept')) {
+            await connection.query("ALTER TABLE notices ADD COLUMN target_dept VARCHAR(50) NULL AFTER target_course_id");
+            console.log('➕ Added column target_dept to notices table');
+        }
+        if (!columnNames.includes('target_semester')) {
+            await connection.query("ALTER TABLE notices ADD COLUMN target_semester INT NULL AFTER target_dept");
+            console.log('➕ Added column target_semester to notices table');
+        }
+        if (!columnNames.includes('file_url')) {
+            await connection.query("ALTER TABLE notices ADD COLUMN file_url VARCHAR(500) NULL AFTER target_semester");
+            console.log('➕ Added column file_url to notices table');
+        }
+        if (!columnNames.includes('is_pinned')) {
+            await connection.query("ALTER TABLE notices ADD COLUMN is_pinned BOOLEAN DEFAULT FALSE AFTER file_url");
+            console.log('➕ Added column is_pinned to notices table');
+        }
+
         console.log('✅ Database & Tables verified/created successfully');
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);

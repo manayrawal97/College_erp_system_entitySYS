@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
   // Client joins a room when they authenticate
   // Rooms: 'role_admin', 'role_faculty', 'role_student', 'course_<id>'
   socket.on('join_room', (data) => {
-    const { role, course_ids = [] } = data;
+    const { role, course_ids = [], department, semester } = data;
 
     // Join role-based room (e.g. 'role_student')
     if (role) socket.join(`role_${role}`);
@@ -41,12 +41,32 @@ io.on('connection', (socket) => {
     // Join course-specific rooms (for course notices)
     course_ids.forEach(id => socket.join(`course_${id}`));
 
-    console.log(`  → User joined rooms: role_${role}, courses: [${course_ids.join(', ')}]`);
+    // Join department-specific room
+    if (department) {
+      socket.join(`dept_${department}`);
+      if (semester) {
+        socket.join(`dept_${department}_sem_${semester}`);
+      }
+    }
+
+    console.log(`  → User joined rooms: role_${role}, dept: ${department}, sem: ${semester}, courses: [${course_ids.join(', ')}]`);
   });
 
   // Client can leave a course room (e.g. after dropping a course)
   socket.on('leave_course', (course_id) => {
     socket.leave(`course_${course_id}`);
+  });
+
+  socket.on('send_message', (data) => {
+    const { room, text, sender } = data;
+    console.log(`💬 Msg in room ${room} from ${sender}: ${text}`);
+    socket.to(room).emit('receive_message', {
+      room,
+      text,
+      sender,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      id: Date.now() + Math.random()
+    });
   });
 
   socket.on('disconnect', () => {
@@ -92,14 +112,14 @@ app.use(cors(corsOptions));
 // General rate limit: 100 req / 15 min per IP
 app.use('/api/', rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 100,   //10
   message: { success: false, message: 'Too many requests. Try again later.' },
 }));
 
 // Stricter limit for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: 100,  //15
   message: { success: false, message: 'Too many attempts. Try again in 15 minutes.' },
 });
 app.use('/api/auth/login', authLimiter);
@@ -109,9 +129,15 @@ app.use('/api/auth/register', authLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Routes ───────────────────────────────────────────────
-// app.use('/api/auth', authRoutes);
-// Week 2: add users, courses, attendance, grades, fees, notices routes here
+// ─── Static Files & Uploads Directory ─────────────────────
+const fs = require('fs');
+const path = require('path');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
 // ─── Routes ───────────────────────────────────────────────
 app.use('/api/auth',       require('./routes/authRoute'));
 app.use('/api/users',      require('./routes/usersRoutes'));
@@ -122,6 +148,7 @@ app.use('/api/fees',       require('./routes/feesRoutes'));
 app.use('/api/notices',    require('./routes/noticesRoutes'));
 app.use('/api/reports',    require('./routes/reportsRoutes'));
 app.use('/api/dashboard',  require('./routes/dashboardRoutes'));
+app.use('/api/upload',     require('./routes/uploadRoutes'));
 
 // Also mount faculty course route at /api prefix
 app.use('/api/faculty',    require('./routes/coursesRoutes'));

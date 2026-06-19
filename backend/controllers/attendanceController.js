@@ -221,3 +221,60 @@ exports.updateAttendance = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/attendance/course/:courseId/today — Faculty gets today's logs
+// ─────────────────────────────────────────────────────────────
+exports.getTodayAttendance = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if faculty is assigned to this course
+    if (req.user.role === 'faculty') {
+      const [assignment] = await pool.query(
+        'SELECT id FROM course_assignments WHERE faculty_id = ? AND course_id = ?',
+        [req.user.id, courseId]
+      );
+      if (!assignment.length) return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const [records] = await pool.query(
+      `SELECT student_id, status, remarks FROM attendance WHERE course_id = ? AND date = ?`,
+      [courseId, today]
+    );
+
+    res.json({ success: true, data: records });
+  } catch (err) {
+    console.error('getTodayAttendance error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching today\'s attendance' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/attendance/course/:courseId/date/:date — Faculty gets logs for specific date
+// ─────────────────────────────────────────────────────────────
+exports.getCourseAttendanceByDate = async (req, res) => {
+  try {
+    const { courseId, date } = req.params;
+    
+    // Check if faculty is assigned to this course
+    if (req.user.role === 'faculty') {
+      const [assignment] = await pool.query(
+        'SELECT id FROM course_assignments WHERE faculty_id = ? AND course_id = ?',
+        [req.user.id, courseId]
+      );
+      if (!assignment.length) return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const [records] = await pool.query(
+      `SELECT student_id, status, remarks FROM attendance WHERE course_id = ? AND date = ?`,
+      [courseId, date]
+    );
+
+    res.json({ success: true, data: records });
+  } catch (err) {
+    console.error('getCourseAttendanceByDate error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching attendance by date' });
+  }
+};

@@ -178,6 +178,10 @@ CREATE TABLE IF NOT EXISTS notices (
   posted_by_user_id INT NOT NULL,
   target_role       ENUM('all','student','faculty') DEFAULT 'all',
   target_course_id  INT NULL,   -- NULL = college-wide
+  target_dept       VARCHAR(50) NULL,
+  target_semester   INT NULL,
+  file_url          VARCHAR(500) NULL,
+  is_pinned         BOOLEAN DEFAULT FALSE,
   is_archived       BOOLEAN DEFAULT FALSE,
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (posted_by_user_id) REFERENCES users(id),

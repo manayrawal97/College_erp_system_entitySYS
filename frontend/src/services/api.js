@@ -101,6 +101,7 @@ export const attendanceApi = {
  mark: (data) => api.post('/attendance/mark', data),
  getStudentAttendance: (studentId) => api.get(`/attendance/student/${studentId}`),
  getCourseAttendance: (courseId) => api.get(`/attendance/course/${courseId}`),
+ getCourseAttendanceByDate: (courseId, date) => api.get(`/attendance/course/${courseId}/date/${date}`),
 };
 
 // Reports endpoints
@@ -109,6 +110,13 @@ export const reportsApi = {
  exportAttendance: (data) => api.post('/reports/attendance', data, { responseType: 'blob' }),
  exportFees: (data) => api.post('/reports/fees', data, { responseType: 'blob' }),
  exportGrades: (data) => api.post('/reports/grades', data, { responseType: 'blob' }),
+};
+
+// Upload endpoints
+export const uploadApi = {
+  uploadPDF: (formData) => api.post('/upload/pdf', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 export default api;

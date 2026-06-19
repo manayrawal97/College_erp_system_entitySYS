@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LayoutDashboard, BookOpen, CalendarCheck, GraduationCap, Bell, MessageSquare, User, LogOut,
     ChevronDown, X, Menu, Edit } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { coursesApi, dashboardApi } from '../../services/api';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
 
 import FacultyDashboardView, { FeesSection } from '../../components/Faculty/FacultyDashboardView';
 import Attendance from '../../components/Faculty/Attendance';
@@ -22,10 +23,34 @@ const FacultyDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [selectedCourseId, setSelectedCourseId] = useState('');
+    const socketRef = useRef(null);
 
     useEffect(() => {
         fetchInitialData();
     }, []);
+
+    useEffect(() => {
+        if (!loading && courses.length > 0) {
+            // Setup Socket.io for Faculty
+            const socketUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
+            socketRef.current = io(socketUrl, {
+                auth: { token: localStorage.getItem('token') }
+            });
+
+            socketRef.current.on('connect', () => {
+                socketRef.current.emit('join_room', {
+                    role: 'faculty',
+                    department: user?.faculty_dept,
+                    course_ids: courses.map(c => c.id)
+                });
+            });
+
+            return () => {
+                if (socketRef.current) socketRef.current.disconnect();
+            };
+        }
+    }, [courses, loading, user]);
 
     const fetchInitialData = async () => {
         try {
@@ -50,6 +75,17 @@ const FacultyDashboard = () => {
         }
     };
 
+    const refreshStats = async () => {
+        try {
+            const statsRes = await dashboardApi.getStats();
+            if (statsRes.data.success) {
+                setStats(statsRes.data.data);
+            }
+        } catch (error) {
+            console.error('Error refreshing stats:', error);
+        }
+    };
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -70,20 +106,29 @@ const FacultyDashboard = () => {
                         loading={loading}
                         courses={courses}
                         setActiveSection={setActiveSection}
+                        selectedCourseId={selectedCourseId}
+                        setSelectedCourseId={setSelectedCourseId}
                     />
                 );
             case 'attendance':
-                return <Attendance courses={courses} />;
+                return <Attendance courses={courses} preselectedCourseId={selectedCourseId} onSaved={refreshStats} />;
             case 'grades':
-                return <Grades courses={courses} />;
+                return <Grades courses={courses} preselectedCourseId={selectedCourseId} onSaved={refreshStats} />;
             case 'notices':
-                return <Notices courses={courses} />;
+                return <Notices courses={courses} socketRef={socketRef} preselectedCourseId={selectedCourseId} />;
             case 'fees':
                 return <FeesSection courses={courses} />;
             case 'community':
-                return <Community />;
+                return <Community socketRef={socketRef} courses={courses} />;
             case 'my-courses':
-                return <MyCourses courses={courses} setActiveSection={setActiveSection} />;
+                return (
+                    <MyCourses
+                        courses={courses}
+                        setActiveSection={setActiveSection}
+                        selectedCourseId={selectedCourseId}
+                        setSelectedCourseId={setSelectedCourseId}
+                    />
+                );
             default:
                 return <div className="text-center py-20 text-gray-500">Section {activeSection} coming soon</div>;
         }

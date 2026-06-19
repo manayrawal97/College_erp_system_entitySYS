@@ -30,6 +30,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { noticesApi } from '../../services/api';
 import Footer from '../../components/Landing/Footer.jsx';
 import toast from 'react-hot-toast';
+// import { NoticeManagement } from '../../components/Admin/NoticeManagement.jsx';
 
 // --- Sub-components ---
 
@@ -94,6 +95,7 @@ const NoticeSkeleton = () => (
 const StudentDashboard = () => {
     const { user, loading, logout } = useAuth();
     const navigate = useNavigate();
+    const backendUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [notices, setNotices] = useState([]);
     const [noticesLoading, setNoticesLoading] = useState(true);
@@ -118,6 +120,14 @@ const StudentDashboard = () => {
             auth: { token: localStorage.getItem('token') }
         });
 
+        socketRef.current.on('connect', () => {
+            socketRef.current.emit('join_room', {
+                role: 'student',
+                department: user.student_dept,
+                semester: user.current_semester
+            });
+        });
+
         socketRef.current.on('new_notice', (newNotice) => {
             setNotices(prev => [newNotice, ...prev]);
             toast('New Announcement!', { icon: '🔔' });
@@ -140,12 +150,12 @@ const StudentDashboard = () => {
         try {
             setNoticesLoading(true);
             setNoticesError(null);
-            const response = await noticesApi.getNotices({
+            const response = await noticesApi.getAll({
                 category: activeCategory === 'all' ? undefined : activeCategory,
                 limit: 50
             });
             // Handle the different response structure between API and fallback
-            const noticeData = response.data.notices || response.data;
+            const noticeData = response.data.data || response.data.notices || response.data;
             setNotices(Array.isArray(noticeData) ? noticeData : []);
         } catch (error) {
             console.error('Failed to fetch notices:', error);
@@ -448,7 +458,7 @@ const StudentDashboard = () => {
                                                         <span className="text-xs font-black text-secondary flex items-center gap-1 group-hover:gap-2 transition-all">
                                                             Read Full Notice <X className="h-3 w-3 rotate-180" />
                                                         </span>
-                                                        {(notice.hasAttachment || notice.attachment_path) && (
+                                                        {notice.file_url && (
                                                             <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
                                                                 <Download className="h-3.5 w-3.5" />
                                                                 PDF ATTACHED
@@ -603,19 +613,24 @@ const StudentDashboard = () => {
                                         </p>
                                     </div>
 
-                                    {(selectedNotice.hasAttachment || selectedNotice.attachment_path) && (
-                                        <button className="flex items-center gap-5 w-full p-6 bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-3xl hover:border-emerald-500 hover:bg-emerald-50/80 transition-all group">
+                                    {selectedNotice.file_url && (
+                                        <a
+                                            href={`${backendUrl}${selectedNotice.file_url}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-5 w-full p-6 bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-3xl hover:border-emerald-500 hover:bg-emerald-50/80 transition-all group cursor-pointer"
+                                        >
                                             <div className="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
                                                 <FileBadge className="h-8 w-8" />
                                             </div>
                                             <div className="text-left flex-grow">
-                                                <p className="text-sm font-black text-gray-900 uppercase tracking-wider">Download Attachment</p>
+                                                <p className="text-sm font-black text-gray-900 uppercase tracking-wider">View / Download Attachment</p>
                                                 <p className="text-xs text-emerald-600 font-bold mt-1">
-                                                    {selectedNotice.attachment_path?.split('/').pop() || `Notice_Doc_${selectedNotice.id}.pdf`}
+                                                    {selectedNotice.file_url.split('/').pop() || `Notice_Doc_${selectedNotice.id}.pdf`}
                                                 </p>
                                             </div>
                                             <Download className="h-6 w-6 text-emerald-500" />
-                                        </button>
+                                        </a>
                                     )}
                                 </div>
                                 <div className="bg-gray-50 p-6 md:p-8 flex justify-end gap-4">

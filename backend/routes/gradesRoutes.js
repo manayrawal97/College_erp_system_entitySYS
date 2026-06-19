@@ -22,11 +22,13 @@ const gradesValidation = [
 router.use(authMiddleware);
 
 // Exams
-router.post('/exams', authorize('admin'), examValidation, ctrl.createExam);
+router.post('/exams', authorize('admin', 'faculty'), examValidation, ctrl.createExam);
 router.get('/exams', ctrl.getExams);
+router.get('/exams/:examId/grades', authorize('admin', 'faculty'), ctrl.getExamGrades);
 
 // Grades
 router.post('/enter', authorize('admin', 'faculty'), gradesValidation, ctrl.enterGrades);
+router.post('/bulk', authorize('admin', 'faculty'), gradesValidation, ctrl.enterGrades);
 router.get('/student/:studentId', ctrl.getStudentGrades);
 router.get('/course/:courseId', authorize('admin', 'faculty'), ctrl.getCourseGrades);
 router.put('/:id', authorize('admin', 'faculty'), ctrl.updateGrade);

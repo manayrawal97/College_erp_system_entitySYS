@@ -329,3 +329,44 @@ exports.getExams = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/grades/exams/:examId/grades — Get grades for a specific exam
+// ─────────────────────────────────────────────────────────────
+exports.getExamGrades = async (req, res) => {
+  try {
+    const { examId } = req.params;
+
+    // Faculty check: make sure they teach the course of this exam
+    if (req.user.role === 'faculty') {
+      const [examRows] = await pool.query(
+        'SELECT course_id FROM exams WHERE id = ?',
+        [examId]
+      );
+      if (examRows.length) {
+        const [assignment] = await pool.query(
+          'SELECT id FROM course_assignments WHERE faculty_id = ? AND course_id = ?',
+          [req.user.id, examRows[0].course_id]
+        );
+        if (!assignment.length) {
+          return res.status(403).json({ success: false, message: 'Access denied: You do not teach this course' });
+        }
+      }
+    }
+
+    const [grades] = await pool.query(
+      `SELECT g.id, g.student_id, g.marks_obtained, g.grade, u.full_name AS student_name, sp.enrollment_id
+       FROM grades g
+       JOIN users u ON g.student_id = u.id
+       JOIN student_profiles sp ON u.id = sp.user_id
+       WHERE g.exam_id = ?
+       ORDER BY u.full_name`,
+      [examId]
+    );
+
+    res.json({ success: true, data: grades });
+  } catch (err) {
+    console.error('getExamGrades error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching exam grades' });
+  }
+};

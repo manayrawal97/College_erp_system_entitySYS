@@ -103,11 +103,16 @@ export const FeesSection = ({ courses }) => {
     );
 };
 
-const FacultyDashboardView = ({ stats, loading, courses, setActiveSection }) => {
+const FacultyDashboardView = ({ stats, loading, courses, setActiveSection, selectedCourseId, setSelectedCourseId }) => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <FacultyKPICards stats={stats} loading={loading} />
-            <MyCourses courses={courses} setActiveSection={setActiveSection} />
+            <MyCourses
+                courses={courses}
+                setActiveSection={setActiveSection}
+                selectedCourseId={selectedCourseId}
+                setSelectedCourseId={setSelectedCourseId}
+            />
         </div>
     );
 };
