@@ -48,36 +48,36 @@ const AdminDashboard = () => {
 
                 {/* Section 2: User Management */}
                 <section id="users">
-                    <UserManagement />
+                    <UserManagement isDashboard={true} />
                 </section>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 sm:gap-10">
                     {/* Section 3: Course Management */}
                     <section id="courses">
-                        <CourseManagement />
+                        <CourseManagement isDashboard={true} />
                     </section>
 
                     {/* Section 4: Notice Management */}
                     <section id="notices">
-                        <NoticeManagement />
+                        <NoticeManagement isDashboard={true} />
                     </section>
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 sm:gap-10">
                     {/* Section 6: Fee Management */}
                     <section id="fees">
-                        <FeeManagement />
+                        <FeeManagement isDashboard={true} />
                     </section>
 
                     {/* Section 5: Exam Management */}
                     <section id="exams">
-                        <ExamManagement />
+                        <ExamManagement isDashboard={true} />
                     </section>
                 </div>
 
                 {/* Section 7: Reports */}
                 <section id="reports" className="pt-4">
-                    <ReportSection />
+                    <ReportSection isDashboard={true} />
                 </section>
             </div>
         </AdminLayout>

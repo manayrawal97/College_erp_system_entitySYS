@@ -88,11 +88,12 @@ export const gradesApi = {
 
 // Fees endpoints
 export const feesApi = {
- getAll: (params) => api.get('/fees/transactions', { params }),
- getStudentFees: (studentId) => api.get(`/fees/student/${studentId}`),
- createTransaction: (data) => api.post('/fees/pay', data),
- updateStatus: (id, status) => api.put(`/fees/transactions/${id}`, { status }),
- getReceipt: (id) => api.get(`/fees/receipt/${id}`, { responseType: 'blob' }),
+  getAll: (params) => api.get('/fees/transactions', { params }),
+  getStudentFees: (studentId) => api.get(`/fees/student/${studentId}`),
+  createTransaction: (data) => api.post('/fees/transactions', data),
+  deleteTransaction: (id) => api.delete(`/fees/transactions/${id}`),
+  updateStatus: (id, status) => api.put(`/fees/transactions/${id}`, { status }),
+  getReceipt: (id) => api.get(`/fees/receipt/${id}`, { responseType: 'blob' }),
 };
 
 // Attendance endpoints

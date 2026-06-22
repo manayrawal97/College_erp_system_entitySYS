@@ -270,3 +270,43 @@ exports.updateTransactionStatus = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/fees/transactions — Admin creates transaction for student
+// ─────────────────────────────────────────────────────────────
+exports.createTransaction = async (req, res) => {
+  const { student_id, amount, fee_type, status, exam_id } = req.body;
+  try {
+    if (!student_id || !amount || !fee_type) {
+      return res.status(400).json({ success: false, message: 'student_id, amount, and fee_type are required' });
+    }
+    const receipt_no = generateReceiptNo();
+    const [result] = await pool.query(
+      `INSERT INTO fee_transactions (student_id, amount, fee_type, status, receipt_no, exam_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [student_id, amount, fee_type, status || 'pending', receipt_no, exam_id || null]
+    );
+
+    res.status(201).json({ success: true, message: 'Transaction created successfully', data: { id: result.insertId, receipt_no } });
+  } catch (err) {
+    console.error('createTransaction error:', err);
+    res.status(500).json({ success: false, message: 'Server error creating transaction' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/fees/transactions/:id — Admin deletes a transaction
+// ─────────────────────────────────────────────────────────────
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query('SELECT id FROM fee_transactions WHERE id = ?', [id]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Transaction not found' });
+
+    await pool.query('DELETE FROM fee_transactions WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Transaction deleted successfully' });
+  } catch (err) {
+    console.error('deleteTransaction error:', err);
+    res.status(500).json({ success: false, message: 'Server error deleting transaction' });
+  }
+};

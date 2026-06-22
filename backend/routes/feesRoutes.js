@@ -15,6 +15,8 @@ router.use(authMiddleware);
 router.post('/pay', authorize('student'), payValidation, ctrl.payFee);
 router.get('/student/:studentId', ctrl.getStudentFees);
 router.get('/transactions', authorize('admin'), ctrl.getAllTransactions);
+router.post('/transactions', authorize('admin'), ctrl.createTransaction);
+router.delete('/transactions/:id', authorize('admin'), ctrl.deleteTransaction);
 router.post('/generate-receipt', ctrl.generateReceipt);
 router.put('/transactions/:id', authorize('admin'), ctrl.updateTransactionStatus);
 

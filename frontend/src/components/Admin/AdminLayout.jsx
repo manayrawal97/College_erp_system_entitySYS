@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -11,8 +11,7 @@ import {
     LogOut,
     Menu,
     X,
-    UserCircle,
-    ChevronRight
+    UserCircle
 } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 
@@ -53,61 +52,138 @@ const AdminLayout = ({ children }) => {
  fixed inset-y-0 left-0 z-50 lg:relative
  ${isSidebarOpen ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-[280px] lg:w-64'}
  transition-all duration-300 ease-in-out
- bg-white border-r border-gray-200 flex flex-col
+ bg-white border-r border-gray-100 flex flex-col shadow-[1px_0_10px_rgba(0,0,0,0.01)]
  `}
             >
-                <div className="p-4 flex items-center justify-between h-16 border-b border-gray-200">
-                    {(isSidebarOpen && window.innerWidth >= 1024) ? (
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold mx-auto">E</div>
-                    ) : (
-                        <div className="flex items-center gap-2 pl-2">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">E</div>
-                            <span className="text-xl font-bold text-gray-900">EntitySYS</span>
+                {/* Sidebar Header */}
+                <div className={`flex border-b border-gray-100 transition-all duration-300 ease-in-out ${
+                    isSidebarOpen 
+                        ? 'flex-col items-center gap-4 py-5 h-auto' 
+                        : 'items-center justify-between p-4 h-16'
+                }`}>
+                    {/* Logo Block */}
+                    <Link 
+                        to="/admin/dashboard"
+                        className={`flex items-center cursor-pointer transition-all duration-300 ease-in-out ${
+                            isSidebarOpen ? 'flex-col justify-center' : 'gap-3 pl-2'
+                        }`}
+                    >
+                        {/* Logo Icon */}
+                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-extrabold text-lg shrink-0 shadow-md shadow-primary/20 relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                            E
                         </div>
-                    )}
+                        {/* Logo Text */}
+                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+                            isSidebarOpen 
+                                ? 'max-w-0 opacity-0 pointer-events-none' 
+                                : 'max-w-[180px] opacity-100'
+                        }`}>
+                            <span className="text-lg font-bold text-gray-900 leading-tight whitespace-nowrap tracking-tight">EntitySYS</span>
+                            <span className="text-[10px] font-semibold text-gray-400 tracking-wider leading-none mt-0.5 whitespace-nowrap">Admin Panel</span>
+                        </div>
+                    </Link>
+
+                    {/* Toggle Button */}
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
+                        className={`p-2 rounded-xl hover:bg-gray-50 text-gray-400 hover:text-gray-700 border border-transparent hover:border-gray-100 shadow-sm transition-all duration-300 shrink-0 ${
+                            isSidebarOpen ? 'order-first' : ''
+                        }`}
                     >
-                        <X size={20} className="lg:hidden" />
-                        <Menu size={20} className="hidden lg:block" />
+                        <X size={18} className="lg:hidden" />
+                        <Menu size={18} className="hidden lg:block" />
                     </button>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                {/* Sidebar Navigation */}
+                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5 custom-scrollbar">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             onClick={() => { if (window.innerWidth < 1024) setIsSidebarOpen(true) }}
                             className={({ isActive }) => `
- flex items-center gap-3 p-3.5 rounded-xl transition-all group relative
+ flex items-center rounded-xl transition-all duration-200 group relative
+ ${isSidebarOpen 
+                                    ? 'w-11 h-11 justify-center mx-auto p-0' 
+                                    : 'w-full p-2.5 px-3.5 gap-3'}
  ${isActive
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                                    : 'text-gray-600 hover:bg-gray-100 '}
+                                    ? 'bg-primary/[0.05] text-primary font-semibold'
+                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium'}
  `}
                         >
-                            <item.icon size={22} className="shrink-0" />
-                            <span className={`font-medium transition-opacity duration-200 ${isSidebarOpen && window.innerWidth >= 1024 ? 'lg:opacity-0 lg:hidden' : 'opacity-100'}`}>
-                                {item.name}
-                            </span>
+                            {({ isActive }) => (
+                                <>
+                                    {/* Active Indicator Bar */}
+                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-primary transition-all duration-300 ease-in-out ${
+                                        isActive ? 'h-5 opacity-100' : 'h-0 opacity-0'
+                                    }`} />
+                                    
+                                    <item.icon size={20} className="shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                                    
+                                    <span className={`text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
+                                        isSidebarOpen 
+                                            ? 'max-w-0 opacity-0 pointer-events-none' 
+                                            : 'max-w-[200px] opacity-100'
+                                    }`}>
+                                        {item.name}
+                                    </span>
 
-                            {isSidebarOpen && window.innerWidth >= 1024 && (
-                                <div className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                                    {item.name}
-                                </div>
+                                    {isSidebarOpen && (
+                                        <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900/95 backdrop-blur-sm text-white text-xs font-semibold rounded-lg shadow-lg border border-gray-800 opacity-0 invisible translate-x-1 group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap z-50">
+                                            {item.name}
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </NavLink>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200">
+                {/* Profile & Logout Section at Bottom */}
+                <div className="p-3 border-t border-gray-100 bg-gray-50/30 space-y-1.5">
+                    {/* User Profile Card */}
+                    <div 
+                        onClick={() => navigate('/profile')}
+                        className={`flex items-center rounded-xl hover:bg-gray-100/60 transition-all duration-200 cursor-pointer overflow-hidden ${
+                            isSidebarOpen 
+                                ? 'w-11 h-11 justify-center mx-auto p-0' 
+                                : 'w-full p-2 gap-2.5'
+                        }`}
+                    >
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
+                            {user?.full_name?.charAt(0) || 'A'}
+                        </div>
+                        {/* Info */}
+                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+                            isSidebarOpen 
+                                ? 'max-w-0 opacity-0 pointer-events-none' 
+                                : 'max-w-[150px] opacity-100'
+                        }`}>
+                            <span className="text-sm font-semibold text-gray-800 truncate leading-tight">{user?.full_name || 'Admin'}</span>
+                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate leading-none mt-0.5">{user?.role || 'Administrator'}</span>
+                        </div>
+                    </div>
+
+                    {/* Logout Button */}
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 p-3.5 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all font-medium"
+                        className={`flex items-center rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200 font-medium cursor-pointer ${
+                            isSidebarOpen 
+                                ? 'w-11 h-11 justify-center mx-auto p-0' 
+                                : 'w-full p-2 px-2.5 gap-2.5'
+                        }`}
                     >
-                        <LogOut size={22} className="shrink-0" />
-                        <span className={`${isSidebarOpen && window.innerWidth >= 1024 ? 'lg:hidden' : 'block'}`}>Logout</span>
+                        <LogOut size={18} className="shrink-0" />
+                        <span className={`transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap text-sm ${
+                            isSidebarOpen 
+                                ? 'max-w-0 opacity-0 pointer-events-none' 
+                                : 'max-w-[150px] opacity-100'
+                        }`}>
+                            Logout
+                        </span>
                     </button>
                 </div>
             </aside>

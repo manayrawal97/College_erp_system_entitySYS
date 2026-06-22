@@ -370,3 +370,59 @@ exports.getExamGrades = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error fetching exam grades' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/grades/exams/:id — Admin/Faculty updates exam details
+// ─────────────────────────────────────────────────────────────
+exports.updateExam = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { exam_name, exam_date, total_marks, exam_type } = req.body;
+
+    const [exam] = await pool.query('SELECT * FROM exams WHERE id = ?', [id]);
+    if (!exam.length) return res.status(404).json({ success: false, message: 'Exam not found' });
+
+    await pool.query(
+      `UPDATE exams SET
+         exam_name = COALESCE(?, exam_name),
+         exam_date = COALESCE(?, exam_date),
+         total_marks = COALESCE(?, total_marks),
+         exam_type = COALESCE(?, exam_type)
+       WHERE id = ?`,
+      [exam_name || null, exam_date || null, total_marks || null, exam_type || null, id]
+    );
+
+    res.json({ success: true, message: 'Exam updated successfully' });
+  } catch (err) {
+    console.error('updateExam error:', err);
+    res.status(500).json({ success: false, message: 'Server error updating exam' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/grades/exams/:id — Admin/Faculty deletes an exam
+// ─────────────────────────────────────────────────────────────
+exports.deleteExam = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [exam] = await pool.query('SELECT id FROM exams WHERE id = ?', [id]);
+    if (!exam.length) return res.status(404).json({ success: false, message: 'Exam not found' });
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.query('DELETE FROM grades WHERE exam_id = ?', [id]);
+      await connection.query('DELETE FROM exams WHERE id = ?', [id]);
+      await connection.commit();
+      res.json({ success: true, message: 'Exam and its grades deleted successfully' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (err) {
+    console.error('deleteExam error:', err);
+    res.status(500).json({ success: false, message: 'Server error deleting exam' });
+  }
+};

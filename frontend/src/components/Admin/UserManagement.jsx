@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
     Search,
     UserPlus,
@@ -16,7 +17,7 @@ import { usersApi } from '../../services/api';
 import toast from 'react-hot-toast';
 import UserModal from './UserModal';
 
-const UserManagement = () => {
+const UserManagement = ({ isDashboard = false }) => {
     const [activeTab, setActiveTab] = useState('all');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -42,44 +43,20 @@ const UserManagement = () => {
             let response;
 
             if (activeTab === 'student') {
-                // Pass is_active explicitly so inactive students don't appear here
                 response = await usersApi.getAll({ role: 'student', is_active: true });
-
             } else if (activeTab === 'faculty') {
                 response = await usersApi.getAll({ role: 'faculty', is_active: true });
-
             } else if (activeTab === 'admin') {
                 response = await usersApi.getAll({ role: 'admin', is_active: true });
-
             } else if (activeTab === 'inactive') {
-                // ✅ This now works — backend reads is_active='false' and returns
-                // only rows WHERE u.is_active = 0
                 response = await usersApi.getAll({ is_active: false });
-
             } else {
-                // 'all' tab — active users only by default.
-                // Change to is_active: 'all' if you want to show everyone here.
                 response = await usersApi.getAll({ is_active: true });
             }
-            // setLoading(true);
-            // let response;
-            // if (activeTab === 'student') {
-            //     response = await usersApi.getStudents();
-            // } else if (activeTab === 'faculty') {
-            //     response = await usersApi.getFaculty();
-            // } else if (activeTab === 'inactive') {
-            //     response = await usersApi.getAll({ is_active: false });
-            // } else if (activeTab === 'admin') {
-            //     response = await usersApi.getAll({ role: 'admin' });
-            // } else {
-            //     response = await usersApi.getAll();
-            // }
             setUsers(response.data.data || []);
-            // setLoading(false);
         } catch (error) {
             console.error('Error fetching users:', error);
             toast.error('Failed to load users');
-            // setLoading(false);
         } finally {
             setLoading(false);
         }
@@ -92,71 +69,86 @@ const UserManagement = () => {
         user.employee_id?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const displayedUsers = isDashboard ? filteredUsers.slice(0, 5) : filteredUsers;
+
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-100">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            {isDashboard ? (
+                <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Users className="text-primary" />
                         User Management
                     </h2>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    {/* <div className="flex flex-col xs:flex-row items-stretch sm:items-center gap-2"> */}
-                        <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
-                            <Upload size={18} />
-                            Import
-                        </button>
-                        <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
-                            <Download size={18} />
-                            Export
-                        </button>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px]"
-                        >
-                            <UserPlus size={18} />
-                            Add User
+                    <Link to="/admin/users" className="text-sm text-primary hover:underline font-bold">
+                        See More Users →
+                    </Link>
+                </div>
+            ) : (
+                <>
+                    <div className="p-4 sm:p-6 border-b border-gray-100">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Users className="text-primary" />
+                                User Management
+                            </h2>
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
+                                    <Upload size={18} />
+                                    Import
+                                </button>
+                                <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
+                                    <Download size={18} />
+                                    Export
+                                </button>
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px]"
+                                >
+                                    <UserPlus size={18} />
+                                    Add User
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-xl overflow-x-auto no-scrollbar custom-scrollbar-h">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`
+                                        flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap min-h-[40px]
+                                        ${activeTab === tab.id
+                                            ? 'bg-white text-primary shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-800 '}
+                                    `}
+                                >
+                                    <span>{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Filters & Search */}
+                    <div className="p-4 bg-gray-50/50 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, ID..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all min-h-[44px] text-gray-900"
+                            />
+                        </div>
+                        <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-white transition-all text-sm font-bold min-h-[44px]">
+                            <Filter size={18} />
+                            Filters
                         </button>
                     </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-xl overflow-x-auto no-scrollbar custom-scrollbar-h">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`
- flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap min-h-[40px]
- ${activeTab === tab.id
-                                    ? 'bg-white text-primary shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-800 '}
- `}
-                        >
-                            <span>{tab.icon}</span>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Filters & Search */}
-            <div className="p-4 bg-gray-50/50 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search by name, email, ID..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all min-h-[44px] text-gray-900"
-                    />
-                </div>
-                <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-white transition-all text-sm font-bold min-h-[44px]">
-                    <Filter size={18} />
-                    Filters
-                </button>
-            </div>
+                </>
+            )}
 
             {/* Table / Card View */}
             <div className="overflow-x-auto custom-scrollbar-h">
@@ -187,7 +179,7 @@ const UserManagement = () => {
                                 </td>
                             </tr>
                         ) : (
-                            filteredUsers.map((user) => (
+                            displayedUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
@@ -271,7 +263,7 @@ const UserManagement = () => {
                         [...Array(3)].map((_, i) => (
                             <div key={i} className="h-48 bg-gray-50 rounded-2xl animate-pulse"></div>
                         ))
-                    ) : filteredUsers.map((user) => (
+                    ) : displayedUsers.map((user) => (
                         <div key={user.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold shrink-0">
@@ -336,6 +328,14 @@ const UserManagement = () => {
                     ))}
                 </div>
             </div>
+
+            {isDashboard && filteredUsers.length > 5 && (
+                <div className="p-4 border-t border-gray-100 flex justify-center bg-gray-50/20">
+                    <Link to="/admin/users" className="text-primary hover:text-primary/80 font-bold text-sm flex items-center gap-1 transition-all">
+                        See More Users (Total {filteredUsers.length}) →
+                    </Link>
+                </div>
+            )}
 
             <UserModal
                 isOpen={isModalOpen}

@@ -7,6 +7,12 @@ import RegisterPage from"./Pages/Auth/RegisterPage";
 import ForgotPasswordPage from"./Pages/Auth/ForgotPasswordPage";
 import StudentDashboard from"./Pages/Student/StudentDashboard";
 import AdminDashboard from"./Pages/Admin/AdminDashboard";
+import UsersPage from "./Pages/Admin/UsersPage";
+import CoursesPage from "./Pages/Admin/CoursesPage";
+import NoticesPage from "./Pages/Admin/NoticesPage";
+import ExamsPage from "./Pages/Admin/ExamsPage";
+import FeesPage from "./Pages/Admin/FeesPage";
+import ReportsPage from "./Pages/Admin/ReportsPage";
 import FacultyDashboard from "./Pages/Faculty/FacultyDashboard";
 import ProfilePage from "./Pages/Profile/ProfilePage";
 import ProtectedRoute from"./components/Auth/ProtectedRoute";
@@ -81,6 +87,54 @@ const App = () => {
  element={
  <ProtectedRoute allowedRoles={['admin']}>
  <AdminDashboard />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/users" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <UsersPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/courses" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <CoursesPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/notices" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <NoticesPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/exams" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <ExamsPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/fees" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <FeesPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/admin/reports" 
+ element={
+ <ProtectedRoute allowedRoles={['admin']}>
+ <ReportsPage />
  </ProtectedRoute>
  } 
  />

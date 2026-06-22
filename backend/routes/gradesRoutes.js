@@ -24,6 +24,8 @@ router.use(authMiddleware);
 // Exams
 router.post('/exams', authorize('admin', 'faculty'), examValidation, ctrl.createExam);
 router.get('/exams', ctrl.getExams);
+router.put('/exams/:id', authorize('admin', 'faculty'), ctrl.updateExam);
+router.delete('/exams/:id', authorize('admin', 'faculty'), ctrl.deleteExam);
 router.get('/exams/:examId/grades', authorize('admin', 'faculty'), ctrl.getExamGrades);
 
 // Grades
