@@ -254,8 +254,18 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    const { full_name, phone, is_active, department, current_semester,
+    let { full_name, phone, is_active, department, current_semester,
             parent_phone, address, sub_role, sub_role_custom, qualification, joining_date } = req.body;
+
+    // Enforce role-based edit restrictions for non-admin users
+    if (req.user.role !== 'admin') {
+      is_active = undefined;
+      department = undefined;
+      current_semester = undefined;
+      sub_role = undefined;
+      sub_role_custom = undefined;
+      joining_date = undefined;
+    }
 
     // Only admin can toggle is_active
     const activeValue = req.user.role === 'admin' && is_active !== undefined ? is_active : rows[0].is_active;

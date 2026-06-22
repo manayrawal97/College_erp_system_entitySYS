@@ -74,7 +74,7 @@ const ProfilePage = () => {
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mt-1">Manage your personal and academic information</p>
                 </div>
 
-                <UserProfile userData={userData} loading={loading} />
+                <UserProfile userData={userData} loading={loading} onRefresh={fetchProfile} />
             </main>
         </div>
     );

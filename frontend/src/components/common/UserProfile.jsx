@@ -4,9 +4,11 @@ import { User, Shield, Key, Edit3 } from 'lucide-react';
 import StudentProfileView from '../profile/StudentProfileView';
 import FacultyProfileView from '../profile/FacultyProfileView';
 import ChangePasswordModal from '../profile/ChangePasswordModal';
+import EditProfileModal from '../profile/EditProfileModal';
 
-const UserProfile = ({ userData, loading }) => {
+const UserProfile = ({ userData, loading, onRefresh }) => {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     if (loading) {
         return (
@@ -39,7 +41,10 @@ const UserProfile = ({ userData, loading }) => {
                         <div className="w-32 h-32 rounded-3xl bg-primary flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
                             {getInitials(user?.full_name)}
                         </div>
-                        <button className="absolute -bottom-2 -right-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-100 text-gray-500 hover:text-primary transition-colors hover:scale-110">
+                        <button 
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="absolute -bottom-2 -right-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-100 text-gray-500 hover:text-primary transition-colors hover:scale-110 cursor-pointer"
+                        >
                             <Edit3 size={18} />
                         </button>
                     </div>
@@ -61,7 +66,10 @@ const UserProfile = ({ userData, loading }) => {
                     <div className="w-full h-px bg-gray-50 my-8"></div>
 
                     <div className="w-full space-y-3">
-                        <button className="w-full flex items-center justify-center gap-3 bg-primary text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all active:scale-95">
+                        <button 
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="w-full flex items-center justify-center gap-3 bg-primary text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all active:scale-95 cursor-pointer"
+                        >
                             <Edit3 size={18} /> Edit Profile
                         </button>
                         <button 
@@ -104,6 +112,13 @@ const UserProfile = ({ userData, loading }) => {
             <ChangePasswordModal 
                 isOpen={isPasswordModalOpen} 
                 onClose={() => setIsPasswordModalOpen(false)} 
+            />
+
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                userData={userData}
+                onRefresh={onRefresh}
             />
         </>
     );
