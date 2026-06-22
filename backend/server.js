@@ -33,7 +33,10 @@ io.on('connection', (socket) => {
   // Client joins a room when they authenticate
   // Rooms: 'role_admin', 'role_faculty', 'role_student', 'course_<id>'
   socket.on('join_room', (data) => {
-    const { role, course_ids = [], department, semester } = data;
+    const { role, course_ids = [], department, semester, user_id } = data;
+
+    // Join user-specific room for direct messaging updates
+    if (user_id) socket.join(`user_${user_id}`);
 
     // Join role-based room (e.g. 'role_student')
     if (role) socket.join(`role_${role}`);
@@ -149,6 +152,8 @@ app.use('/api/notices',    require('./routes/noticesRoutes'));
 app.use('/api/reports',    require('./routes/reportsRoutes'));
 app.use('/api/dashboard',  require('./routes/dashboardRoutes'));
 app.use('/api/upload',     require('./routes/uploadRoutes'));
+app.use('/api/student',    require('./routes/studentRoutes'));
+app.use('/api/chat',       require('./routes/chatRoutes'));
 
 // Also mount faculty course route at /api prefix
 app.use('/api/faculty',    require('./routes/coursesRoutes'));

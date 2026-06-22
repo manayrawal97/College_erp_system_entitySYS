@@ -6,6 +6,13 @@ import LoginPage from"./Pages/Auth/LoginPage";
 import RegisterPage from"./Pages/Auth/RegisterPage";
 import ForgotPasswordPage from"./Pages/Auth/ForgotPasswordPage";
 import StudentDashboard from"./Pages/Student/StudentDashboard";
+import AdmissionPage from "./Pages/Student/AdmissionPage";
+import ExamPortalPage from "./Pages/Student/ExamPortalPage";
+import AttendancePage from "./Pages/Student/AttendancePage";
+import ResultsPage from "./Pages/Student/ResultsPage";
+import CommunityPage from "./Pages/Student/CommunityPage";
+import LMSPage from "./Pages/Student/LMSPage";
+import { SocketProvider } from "./context/SocketContext";
 import AdminDashboard from"./Pages/Admin/AdminDashboard";
 import UsersPage from "./Pages/Admin/UsersPage";
 import CoursesPage from "./Pages/Admin/CoursesPage";
@@ -26,6 +33,7 @@ const PlaceholderPage = ({ title }) => (
 const App = () => {
  return (
  <AuthProvider>
+ <SocketProvider>
  <div className="min-h-screen bg-white">
  <Toaster position="top-right" reverseOrder={false} />
  <Routes>
@@ -67,6 +75,54 @@ const App = () => {
  element={
  <ProtectedRoute allowedRoles={['student']}>
  <StudentDashboard />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/admission" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <AdmissionPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/exams" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <ExamPortalPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/attendance" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <AttendancePage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/results" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <ResultsPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/community" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <CommunityPage />
+ </ProtectedRoute>
+ } 
+ />
+ <Route 
+ path="/student/lms" 
+ element={
+ <ProtectedRoute allowedRoles={['student']}>
+ <LMSPage />
  </ProtectedRoute>
  } 
  />
@@ -150,19 +206,9 @@ const App = () => {
  />
  </Routes>
  </div>
+ </SocketProvider>
  </AuthProvider>
  );
 };
 
 export default App;
-// >
-// </ProtectedRoute>
-// } 
-// />
-// </Routes>
-// </div>
-// </AuthProvider>
-// );
-// };
-
-// export default App;

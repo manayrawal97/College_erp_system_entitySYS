@@ -1,9 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Target, Users, BookOpen, FileBadge, Briefcase } from 'lucide-react';
 import { FeatureCard } from './StudentComponents';
 import StudentAttendanceCard from './StudentAttendanceCard';
+import studentService from '../../services/studentService';
 
 const StudentQuickActions = () => {
+    const [cgpa, setCgpa] = useState('8.50');
+
+    useEffect(() => {
+        const fetchGradesSummary = async () => {
+            try {
+                const res = await studentService.getGradesSummary();
+                if (res.data.success) {
+                    setCgpa(res.data.data.cgpa || '8.50');
+                }
+            } catch (err) {
+                console.error('Error loading CGPA for quick actions:', err);
+            }
+        };
+        fetchGradesSummary();
+    }, []);
+
     return (
         <div className="area-cards space-y-6">
             <div className="flex items-center justify-between">
@@ -18,26 +35,23 @@ const StudentQuickActions = () => {
                     icon={FileBadge}
                     title="Admission"
                     description="Your admission status and verified documents"
-                    link="/admission-details"
-                    comingSoon
+                    link="/student/admission"
                 />
                 <FeatureCard
                     icon={Briefcase}
                     title="Exam Portal"
                     description="Registration, fee payment, and hall tickets"
-                    link="/exam-forms"
-                    comingSoon
+                    link="/student/exams"
                 />
                 <StudentAttendanceCard />
                 <FeatureCard
                     icon={Target}
                     title="Results"
                     description="Grades, transcripts, and semester marks"
-                    link="/marks"
-                    comingSoon
+                    link="/student/results"
                     extra={
                         <div className="mt-2">
-                            <span className="text-[11px] font-black text-secondary bg-secondary/10 px-3 py-1.5 rounded-full">CGPA: 8.5 / 10</span>
+                            <span className="text-[11px] font-black text-secondary bg-secondary/10 px-3 py-1.5 rounded-full">CGPA: {cgpa} / 10</span>
                         </div>
                     }
                 />
@@ -45,15 +59,13 @@ const StudentQuickActions = () => {
                     icon={Users}
                     title="Community"
                     description="Chat with batchmates and join study groups"
-                    link="/classmates"
-                    comingSoon
+                    link="/student/community"
                 />
                 <FeatureCard
                     icon={BookOpen}
                     title="LMS"
                     description="Access course materials and assignments"
-                    link="/courses"
-                    comingSoon
+                    link="/student/lms"
                 />
             </div>
         </div>

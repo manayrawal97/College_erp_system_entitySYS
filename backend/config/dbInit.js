@@ -44,6 +44,33 @@ const initDb = async () => {
             console.log('➕ Added column is_pinned to notices table');
         }
 
+        // Initialize Chat Tables
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS direct_messages (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                sender_id INT NOT NULL,
+                receiver_id INT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+        `);
+        console.log('✅ Checked/Created direct_messages table');
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS group_messages (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                course_id INT NOT NULL,
+                sender_id INT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+        `);
+        console.log('✅ Checked/Created group_messages table');
+
         console.log('✅ Database & Tables verified/created successfully');
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
