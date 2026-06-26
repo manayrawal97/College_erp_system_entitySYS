@@ -8,6 +8,7 @@ router.use(authMiddleware);
 router.post('/attendance', authorize('admin', 'faculty', 'student'), ctrl.attendanceReport);
 router.post('/grades', authorize('admin', 'faculty', 'student'), ctrl.gradesReport);
 router.post('/fees', authorize('admin'), ctrl.feesReport);
+router.post('/students', authorize('admin', 'faculty'), ctrl.studentsReport);
 router.post('/admit-card/generate', ctrl.generateAdmitCard);
 
 module.exports = router;

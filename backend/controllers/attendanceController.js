@@ -13,7 +13,7 @@ exports.markAttendance = async (req, res) => {
 
   const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
+    await connection.beginTransaction();      //Transactions only work correctly when every query uses the same connection.
 
     // Verify faculty is actually assigned to this course
     const [assignment] = await connection.query(
@@ -25,21 +25,21 @@ exports.markAttendance = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You are not assigned to this course' });
     }
 
-    // Validate all student_ids are enrolled in this course
-    const studentIds = records.map(r => r.student_id);
-    const [enrolled] = await connection.query(
-      `SELECT student_id FROM enrollments
-       WHERE course_id = ? AND student_id IN (?) AND status = 'active'`,
-      [course_id, studentIds]
-    );
-    const enrolledIds = new Set(enrolled.map(e => e.student_id));
-    const invalid = studentIds.filter(id => !enrolledIds.has(id));
-    if (invalid.length) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        message: `These student IDs are not enrolled: ${invalid.join(', ')}`,
-      });
+      // Validate all student_ids are enrolled in this course
+      const studentIds = records.map(r => r.student_id);
+      const [enrolled] = await connection.query(
+        `SELECT student_id FROM enrollments
+        WHERE course_id = ? AND student_id IN (?) AND status = 'active'`,
+        [course_id, studentIds]
+      );
+      const enrolledIds = new Set(enrolled.map(e => e.student_id));
+      const invalid = studentIds.filter(id => !enrolledIds.has(id));
+      if (invalid.length) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message: `These student IDs are not enrolled: ${invalid.join(', ')}`,
+        });
     }
 
     // Bulk upsert — marks or updates attendance for the given date

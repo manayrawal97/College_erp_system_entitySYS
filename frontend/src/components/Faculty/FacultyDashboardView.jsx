@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Download } from 'lucide-react';
-import { coursesApi } from '../../services/api';
+import { coursesApi, reportsApi } from '../../services/api';
 import toast from 'react-hot-toast';
 import FacultyKPICards from './FacultyKPICards';
 import MyCourses from './My Courses';
@@ -9,6 +9,43 @@ export const FeesSection = ({ courses }) => {
     const [selectedCourse, setSelectedCourse] = useState(courses[0]?.id || '');
     const [students, setStudents] = useState([]);
     const [filter, setFilter] = useState('All');
+
+    const handleExport = async (format) => {
+        if (!selectedCourse) {
+            toast.error('Please select a course first');
+            return;
+        }
+        const id = toast.loading(`Generating and downloading fee report as ${format.toUpperCase()}...`);
+        try {
+            const res = await reportsApi.exportFees({
+                format,
+                course_id: selectedCourse
+            });
+
+            if (res.data && res.data.type === 'application/json') {
+                const text = await res.data.text();
+                const errObj = JSON.parse(text);
+                throw new Error(errObj.message || 'Server error generating report');
+            }
+
+            const blob = new Blob([res.data], {
+                type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `course-fees-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Fee report exported successfully', { id });
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message || 'Failed to export fee report', { id });
+        }
+    };
 
     useEffect(() => {
         if (selectedCourse) fetchFeeStatus();
@@ -93,9 +130,18 @@ export const FeesSection = ({ courses }) => {
                         </tbody>
                     </table>
                 </div>
-                <div className="p-4 bg-gray-50/50 flex justify-end">
-                    <button className="flex items-center gap-2 text-xs font-bold text-primary hover:underline">
-                        <Download size={14} /> Export Fee Report
+                <div className="p-4 bg-gray-50/50 flex justify-end gap-3">
+                    <button
+                        onClick={() => handleExport('pdf')}
+                        className="flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                    >
+                        <Download size={14} /> PDF Report
+                    </button>
+                    <button
+                        onClick={() => handleExport('excel')}
+                        className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:underline cursor-pointer"
+                    >
+                        <Download size={14} /> Excel Report
                     </button>
                 </div>
             </div>

@@ -1,11 +1,182 @@
 const pool = require('../config/db.config');
+const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
+
+// ─────────────────────────────────────────────────────────────
+// PDF & Excel Helper Functions
+// ─────────────────────────────────────────────────────────────
+function generatePDFReport(title, headers, rows, subtitle = '') {
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
+
+  // Header Title
+  doc.fontSize(20).fillColor('#1e3a8a').text(title, { align: 'center' });
+  if (subtitle) {
+    doc.fontSize(10).fillColor('#4b5563').text(subtitle, { align: 'center' });
+  }
+  doc.moveDown(2);
+
+  const startX = 40;
+  let startY = doc.y;
+  const colWidth = 515 / headers.length; // A4 width is 595. Printable width: 595 - 2*40 = 515
+
+  // Draw Header Row
+  doc.fontSize(9).fillColor('#ffffff').rect(startX, startY, 515, 20).fill('#1e3a8a');
+  doc.fillColor('#ffffff');
+  headers.forEach((h, i) => {
+    doc.text(h, startX + i * colWidth + 5, startY + 5, { width: colWidth - 10, height: 12, ellipsis: true });
+  });
+
+  startY += 20;
+  doc.fillColor('#374151');
+
+  // Draw Row Data
+  rows.forEach((row, rowIndex) => {
+    if (startY > 740) { // Keep a safe margin at page bottom (A4 height is 842)
+      doc.addPage();
+      startY = 40;
+
+      // Redraw Header Row on new page
+      doc.fontSize(9).fillColor('#ffffff').rect(startX, startY, 515, 20).fill('#1e3a8a');
+      doc.fillColor('#ffffff');
+      headers.forEach((h, i) => {
+        doc.text(h, startX + i * colWidth + 5, startY + 5, { width: colWidth - 10, height: 12, ellipsis: true });
+      });
+      startY += 20;
+      doc.fillColor('#374151');
+    }
+
+    // Zebra striping background
+    if (rowIndex % 2 === 1) {
+      doc.rect(startX, startY, 515, 18).fill('#f9fafb');
+      doc.fillColor('#374151');
+    }
+
+    row.forEach((cell, cellIndex) => {
+      doc.fontSize(8).text(String(cell ?? ''), startX + cellIndex * colWidth + 5, startY + 4, { width: colWidth - 10, height: 12, ellipsis: true });
+    });
+
+    // Thin bottom cell borders
+    doc.rect(startX, startY, 515, 18).stroke('#e5e7eb');
+
+    startY += 18;
+  });
+
+  return doc;
+}
+
+async function generateExcelReport(res, title, headers, rows, filename) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(title);
+
+  worksheet.addRow([title]).font = { size: 16, bold: true, color: { argb: '1E3A8A' } };
+  worksheet.addRow([]); // empty spacing row
+
+  const headerRow = worksheet.addRow(headers);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+  headerRow.eachCell((cell) => {
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '1E3A8A' },
+    };
+  });
+
+  rows.forEach((row) => {
+    worksheet.addRow(row);
+  });
+
+  // Automatically fit columns
+  worksheet.columns.forEach((col) => {
+    let maxLen = 0;
+    col.eachCell({ includeEmpty: true }, (cell) => {
+      const cellLen = cell.value ? String(cell.value).length : 0;
+      if (cellLen > maxLen) maxLen = cellLen;
+    });
+    col.width = Math.max(maxLen + 4, 12);
+  });
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/reports/students — Students Directory Report
+// ─────────────────────────────────────────────────────────────
+exports.studentsReport = async (req, res) => {
+  try {
+    const { department, semester, format } = req.body;
+    let whereClause = 'WHERE u.role = "student" AND u.is_active = 1';
+    const params = [];
+
+    if (department) {
+      whereClause += ' AND sp.department = ?';
+      params.push(department);
+    }
+    if (semester) {
+      whereClause += ' AND sp.current_semester = ?';
+      params.push(semester);
+    }
+
+    // Restrict faculty to view their students only
+    if (req.user.role === 'faculty') {
+      whereClause += ` AND EXISTS (
+        SELECT 1 FROM enrollments e
+        JOIN course_assignments ca ON e.course_id = ca.course_id
+        WHERE e.student_id = u.id AND ca.faculty_id = ?
+      )`;
+      params.push(req.user.id);
+    }
+
+    const [records] = await pool.query(
+      `SELECT u.full_name, u.email, u.phone,
+              sp.enrollment_id, sp.department, sp.current_semester, sp.address
+       FROM users u
+       JOIN student_profiles sp ON u.id = sp.user_id
+       ${whereClause}
+       ORDER BY sp.department, sp.current_semester, u.full_name`,
+      params
+    );
+
+    const headers = ['Student Name', 'Enrollment ID', 'Email', 'Phone', 'Department', 'Semester', 'Address'];
+    const rows = records.map((r) => [
+      r.full_name,
+      r.enrollment_id,
+      r.email,
+      r.phone || 'N/A',
+      r.department,
+      `Semester ${r.current_semester}`,
+      r.address || 'N/A',
+    ]);
+
+    if (format === 'pdf') {
+      const doc = generatePDFReport('Students Directory Report', headers, rows, `Generated at: ${new Date().toLocaleDateString()}`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="students-report.pdf"');
+      doc.pipe(res);
+      doc.end();
+    } else if (format === 'excel') {
+      await generateExcelReport(res, 'Students Directory', headers, rows, 'students-report.xlsx');
+    } else {
+      res.json({
+        success: true,
+        data: records,
+        meta: { generated_at: new Date(), filters: { department, semester } },
+      });
+    }
+  } catch (err) {
+    console.error('studentsReport error:', err);
+    res.status(500).json({ success: false, message: 'Server error generating students report' });
+  }
+};
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/reports/attendance — Attendance report data
 // ─────────────────────────────────────────────────────────────
 exports.attendanceReport = async (req, res) => {
   try {
-    const { course_id, student_id, from_date, to_date } = req.body;
+    const { course_id, student_id, from_date, to_date, format } = req.body;
     let whereClause = 'WHERE 1=1';
     const params = [];
 
@@ -60,11 +231,32 @@ exports.attendanceReport = async (req, res) => {
       params
     );
 
-    res.json({
-      success: true,
-      data: { records, summary },
-      meta: { generated_at: new Date(), filters: { course_id, student_id, from_date, to_date } },
-    });
+    const headers = ['Student Name', 'Enrollment ID', 'Course Code', 'Date', 'Status', 'Remarks', 'Marked By'];
+    const rows = records.map((r) => [
+      r.student_name,
+      r.enrollment_id,
+      r.course_code,
+      new Date(r.date).toISOString().split('T')[0],
+      r.status.toUpperCase(),
+      r.remarks || '',
+      r.marked_by,
+    ]);
+
+    if (format === 'pdf') {
+      const doc = generatePDFReport('Attendance Report', headers, rows, `Generated at: ${new Date().toLocaleDateString()}`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="attendance-report.pdf"');
+      doc.pipe(res);
+      doc.end();
+    } else if (format === 'excel') {
+      await generateExcelReport(res, 'Attendance Report', headers, rows, 'attendance-report.xlsx');
+    } else {
+      res.json({
+        success: true,
+        data: { records, summary },
+        meta: { generated_at: new Date(), filters: { course_id, student_id, from_date, to_date } },
+      });
+    }
   } catch (err) {
     console.error('attendanceReport error:', err);
     res.status(500).json({ success: false, message: 'Server error generating report' });
@@ -76,7 +268,7 @@ exports.attendanceReport = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 exports.gradesReport = async (req, res) => {
   try {
-    const { course_id, student_id, exam_type, semester } = req.body;
+    const { course_id, student_id, exam_type, semester, format } = req.body;
     let whereClause = 'WHERE 1=1';
     const params = [];
 
@@ -136,11 +328,33 @@ exports.gradesReport = async (req, res) => {
       params
     );
 
-    res.json({
-      success: true,
-      data: { records, cgpa_summary: cgpaRows },
-      meta: { generated_at: new Date(), filters: { course_id, student_id, exam_type, semester } },
-    });
+    const headers = ['Student Name', 'Enrollment ID', 'Course Code', 'Exam Name', 'Exam Type', 'Total Marks', 'Marks Obtained', 'Grade'];
+    const rows = records.map((r) => [
+      r.student_name,
+      r.enrollment_id,
+      r.course_code,
+      r.exam_name,
+      r.exam_type.toUpperCase(),
+      r.total_marks,
+      r.marks_obtained,
+      r.grade,
+    ]);
+
+    if (format === 'pdf') {
+      const doc = generatePDFReport('Grades Report', headers, rows, `Generated at: ${new Date().toLocaleDateString()}`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="grades-report.pdf"');
+      doc.pipe(res);
+      doc.end();
+    } else if (format === 'excel') {
+      await generateExcelReport(res, 'Grades Report', headers, rows, 'grades-report.xlsx');
+    } else {
+      res.json({
+        success: true,
+        data: { records, cgpa_summary: cgpaRows },
+        meta: { generated_at: new Date(), filters: { course_id, student_id, exam_type, semester } },
+      });
+    }
   } catch (err) {
     console.error('gradesReport error:', err);
     res.status(500).json({ success: false, message: 'Server error generating grades report' });
@@ -152,7 +366,7 @@ exports.gradesReport = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 exports.feesReport = async (req, res) => {
   try {
-    const { from_date, to_date, fee_type, status } = req.body;
+    const { from_date, to_date, fee_type, status, format } = req.body;
     let whereClause = 'WHERE 1=1';
     const params = [];
 
@@ -185,11 +399,33 @@ exports.feesReport = async (req, res) => {
       params
     );
 
-    res.json({
-      success: true,
-      data: { records, totals: totals[0] },
-      meta: { generated_at: new Date(), filters: { from_date, to_date, fee_type, status } },
-    });
+    const headers = ['Transaction ID', 'Student Name', 'Enrollment ID', 'Fee Type', 'Amount', 'Status', 'Payment Method', 'Payment Date'];
+    const rows = records.map((r) => [
+      r.id,
+      r.student_name,
+      r.enrollment_id,
+      r.fee_type.toUpperCase(),
+      `INR ${r.amount}`,
+      r.status.toUpperCase(),
+      r.payment_method || 'N/A',
+      r.payment_date ? new Date(r.payment_date).toISOString().split('T')[0] : 'N/A',
+    ]);
+
+    if (format === 'pdf') {
+      const doc = generatePDFReport('Fees Report', headers, rows, `Generated at: ${new Date().toLocaleDateString()}`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="fees-report.pdf"');
+      doc.pipe(res);
+      doc.end();
+    } else if (format === 'excel') {
+      await generateExcelReport(res, 'Fees Report', headers, rows, 'fees-report.xlsx');
+    } else {
+      res.json({
+        success: true,
+        data: { records, totals: totals[0] },
+        meta: { generated_at: new Date(), filters: { from_date, to_date, fee_type, status } },
+      });
+    }
   } catch (err) {
     console.error('feesReport error:', err);
     res.status(500).json({ success: false, message: 'Server error generating fees report' });

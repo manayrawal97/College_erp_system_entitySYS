@@ -9,7 +9,7 @@ const generateReceiptNo = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// POST /api/fees/pay — Student pays/registers for an exam ($12)
+// POST /api/fees/pay — Student pays/registers for an exam ($1200)
 // ─────────────────────────────────────────────────────────────
 exports.payFee = async (req, res) => {
   const errors = validationResult(req);
@@ -46,7 +46,7 @@ exports.payFee = async (req, res) => {
       }
     }
 
-    const EXAM_FEE = 12.00;
+    const EXAM_FEE = 1200.00;
     const finalAmount = fee_type === 'exam' ? EXAM_FEE : (amount || EXAM_FEE);
     const receipt_no = generateReceiptNo();
 

@@ -24,6 +24,72 @@ const UserManagement = ({ isDashboard = false }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const fileInputRef = React.useRef(null);
+    const [importing, setImporting] = useState(false);
+
+    const handleExport = async (format) => {
+        const id = toast.loading(`Exporting users as ${format.toUpperCase()}...`);
+        try {
+            const res = await usersApi.exportUsers({ format });
+            const blob = new Blob([res.data], {
+                type: format === 'excel'
+                    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    : 'text/csv'
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `users-export.${format === 'excel' ? 'xlsx' : 'csv'}`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success('Users exported successfully', { id });
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to export users', { id });
+        }
+    };
+
+    const handleImportClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleImportFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        e.target.value = '';
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'csv' && ext !== 'xlsx') {
+            toast.error('Only CSV and Excel (.xlsx) files are supported.');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size exceeds the 5MB limit.');
+            return;
+        }
+
+        const id = toast.loading('Importing users, please wait...');
+        try {
+            setImporting(false);
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await usersApi.importUsers(formData);
+            if (res.data.success) {
+                toast.success(res.data.message || 'Users imported successfully!', { id });
+                fetchUsers();
+            } else {
+                toast.error(res.data.message || 'Failed to import users.', { id });
+            }
+        } catch (err) {
+            console.error(err);
+            const errMsg = err.response?.data?.message || 'Failed to import users.';
+            toast.error(errMsg, { id });
+        }
+    };
 
     const tabs = [
         { id: 'all', label: 'All Users', icon: '📋' },
@@ -92,13 +158,34 @@ const UserManagement = ({ isDashboard = false }) => {
                                 User Management
                             </h2>
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleImportFileChange}
+                                    accept=".csv, .xlsx"
+                                    style={{ display: 'none' }}
+                                />
+                                <button
+                                    onClick={handleImportClick}
+                                    disabled={importing}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px] cursor-pointer disabled:opacity-50"
+                                >
                                     <Upload size={18} />
                                     Import
                                 </button>
-                                <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px]">
+                                <button
+                                    onClick={() => handleExport('csv')}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px] cursor-pointer"
+                                >
                                     <Download size={18} />
-                                    Export
+                                    Export CSV
+                                </button>
+                                <button
+                                    onClick={() => handleExport('excel')}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all text-sm font-bold min-h-[44px] cursor-pointer"
+                                >
+                                    <Download size={18} />
+                                    Export Excel
                                 </button>
                                 <button
                                     onClick={() => setIsModalOpen(true)}

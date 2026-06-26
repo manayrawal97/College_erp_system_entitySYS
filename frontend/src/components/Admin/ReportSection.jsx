@@ -30,7 +30,11 @@ const ReportCard = ({ title, icon: Icon, onExportPDF, onExportExcel }) => (
 );
 
 const ReportSection = ({ isDashboard = false }) => {
+  const [downloading, setDownloading] = React.useState({});
+
   const handleExport = async (type, format) => {
+    const toastId = toast.loading(`Generating and downloading ${type} ${format.toUpperCase()} report...`);
+    setDownloading((prev) => ({ ...prev, [`${type}-${format}`]: true }));
     try {
       let response;
       const data = { format };
@@ -43,17 +47,31 @@ const ReportSection = ({ isDashboard = false }) => {
         default: return;
       }
 
-      const blob = new Blob([response.data]);
+      // If the response is JSON error wrapped in a blob
+      if (response.data && response.data.type === 'application/json') {
+        const text = await response.data.text();
+        const errObj = JSON.parse(text);
+        throw new Error(errObj.message || 'Server error generating report');
+      }
+
+      const blob = new Blob([response.data], {
+        type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `${type}-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
       document.body.appendChild(link);
       link.click();
-      toast.success(`${type} report exported successfully`);
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${type} report exported successfully`, { id: toastId });
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export report');
+      toast.error(error.message || 'Failed to export report', { id: toastId });
+    } finally {
+      setDownloading((prev) => ({ ...prev, [`${type}-${format}`]: false }));
     }
   };
 

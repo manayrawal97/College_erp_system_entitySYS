@@ -48,6 +48,8 @@ export const usersApi = {
  delete: (id) => api.delete(`/users/${id}`),
  getStudents: (params) => api.get('/users', { params: { ...params, role: 'student' } }),
  getFaculty: (params) => api.get('/users', { params: { ...params, role: 'faculty' } }),
+ exportUsers: (params) => api.get('/users/export', { params, responseType: 'blob' }),
+ importUsers: (formData) => api.post('/users/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 // Courses endpoints

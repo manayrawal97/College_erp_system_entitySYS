@@ -7,8 +7,8 @@ const { authMiddleware, authorize } = require('../middleware/authMiddleware');
 const noticeValidation = [
   body('title').trim().isLength({ min: 3, max: 255 }).withMessage('Title: 3-255 characters'),
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
-  body('target_role').optional().isIn(['all', 'student', 'faculty']),
-  body('target_course_id').optional().isInt(),
+  body('target_role').optional({ values: 'null' }).isIn(['all', 'student', 'faculty']),
+  body('target_course_id').optional({ values: 'null' }).isInt(),
 ];
 
 router.use(authMiddleware);

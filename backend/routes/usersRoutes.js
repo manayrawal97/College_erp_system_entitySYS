@@ -16,10 +16,20 @@ const userCreateValidation = [
         .isIn(['CSE', 'EE', 'EC', 'Mechanical', 'Civil']).withMessage('Invalid department selected'),
 ];
 
+const multer = require('multer');
+const path = require('path');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads')),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage });
+
 // All routes require authentication
 router.use(authMiddleware);
 
 router.get('/profile', ctrl.getProfile);
+router.get('/export', authorize('admin'), ctrl.exportUsers);
+router.post('/import', authorize('admin'), upload.single('file'), ctrl.importUsers);
 router.get('/', authorize('admin', 'faculty'), ctrl.getUsers);
 router.get('/:id', ctrl.getUserById);
 
