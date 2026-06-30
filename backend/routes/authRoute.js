@@ -4,18 +4,21 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { authMiddleware: authenticate } = require('../middleware/authMiddleware');
 const rateLimit = require('express-rate-limit');
+const { rateLimitKeyGenerator } = require('../utils/rateLimitHelper');
 
 // Rate limiters for security
 const forgotPasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10,
-  message: { success: false, message: 'Too many forgot password requests. Please try again in an hour.' }
+  message: { success: false, message: 'Too many forgot password requests. Please try again in an hour.' },
+  keyGenerator: rateLimitKeyGenerator,
 });
 
 const otpLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10,
-  message: { success: false, message: 'Too many OTP verification attempts. Please try again in an hour.' }
+  message: { success: false, message: 'Too many OTP verification attempts. Please try again in an hour.' },
+  keyGenerator: rateLimitKeyGenerator,
 });
 
 // Validation rules (reusable)

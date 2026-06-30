@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { rateLimitKeyGenerator } = require('./utils/rateLimitHelper');
 require('dotenv').config();
 
 // Import routes
@@ -13,6 +14,7 @@ const initDb = require('./config/dbInit');
 
 // ─── App + HTTP server (Socket.io needs raw http.Server) ──
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -112,11 +114,12 @@ app.use(cors(corsOptions));
 // app.use('/api/auth/login', authLimiter);
 // app.use('/api/auth/register', authLimiter);
 // ---------------------------------------------------------------------------
-// General rate limit: 100 req / 15 min per IP
+// General rate limit: 1000 req / 15 min per IP / User
 app.use('/api/', rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,   //10
+  max: 1000,
   message: { success: false, message: 'Too many requests. Try again later.' },
+  keyGenerator: rateLimitKeyGenerator,
 }));
 
 // Stricter limit for auth endpoints
@@ -124,6 +127,7 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,  //15
   message: { success: false, message: 'Too many attempts. Try again in 15 minutes.' },
+  keyGenerator: rateLimitKeyGenerator,
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
