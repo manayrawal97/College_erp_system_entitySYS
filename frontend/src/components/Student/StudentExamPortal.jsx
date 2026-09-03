@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Calendar, FileText, Download, DollarSign, Loader2, AlertCircle } from 'lucide-react';
 import studentService from '../../services/studentService';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const StudentExamPortal = () => {
     const [exams, setExams] = useState([]);
@@ -9,6 +10,7 @@ const StudentExamPortal = () => {
     const [error, setError] = useState(null);
     const [selectedExam, setSelectedExam] = useState(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    useBodyScrollLock(isPaymentModalOpen);
     const [paymentLoading, setPaymentLoading] = useState(false);
 
     useEffect(() => {
@@ -64,7 +66,7 @@ const StudentExamPortal = () => {
                 link.setAttribute('download', `hallticket-${examId}.pdf`);
                 document.body.appendChild(link);
                 // In demo, we can just log/download.
-                toast('Mock Download Triggered', { icon: '📄' });
+                toast.success('Hall ticket download initiated');
             }
         } catch (err) {
             console.error(err);
@@ -93,7 +95,7 @@ const StudentExamPortal = () => {
         <div className="space-y-8 max-w-6xl mx-auto">
             {/* Header */}
             <div>
-                <h2 className="text-3xl font-black text-gray-900 leading-tight">Exam Registrar</h2>
+                <h2 className="text-3xl font-black text-gray-900 leading-tight">Exam Registration</h2>
                 <p className="text-gray-500 font-bold mt-1">Enroll for semesters, pay exam fees, and download hall tickets.</p>
             </div>
 
@@ -176,9 +178,9 @@ const StudentExamPortal = () => {
 
             {/* Trial Payment Dialog */}
             {isPaymentModalOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 overscroll-contain">
                     <div className="absolute inset-0 bg-navy/60 backdrop-blur-md" onClick={() => setIsPaymentModalOpen(false)}></div>
-                    <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                         <div className="p-6 md:p-8">
                             <div className="w-12 h-12 bg-amber-50 text-amber-600 border border-amber-100 rounded-2xl flex items-center justify-center mb-6">
                                 <DollarSign size={24} />

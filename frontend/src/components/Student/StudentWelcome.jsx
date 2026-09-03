@@ -20,7 +20,7 @@ const StudentWelcome = ({ user }) => {
                         Student Dashboard
                     </span>
                     <h1 className="text-3xl lg:text-5xl font-black mb-3 leading-tight tracking-tighter">
-                        Welcome, <br className="hidden sm:block" /> {firstName}! 👋
+                        Welcome, <br className="hidden sm:block" /> {firstName}!
                     </h1>
                     <p className="text-blue-100 text-sm lg:text-lg font-bold mb-8 opacity-90">
                         Your academic progress at a glance.

@@ -72,3 +72,14 @@
 .animate-float {
  animation: float 6s ease-in-out infinite;
 }
+
+/* Prevent background and layout scrolling when any modal is open */
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body.modal-open main.overflow-y-auto {
+  overflow-y: hidden !important;
+  overscroll-behavior: none;
+}

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../services/api';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const UserModal = ({ isOpen, onClose, user, onRefresh }) => {
+    useBodyScrollLock(isOpen);
     const [role, setRole] = useState('student');
     const [formData, setFormData] = useState({
         full_name: '',
@@ -92,7 +94,7 @@ const UserModal = ({ isOpen, onClose, user, onRefresh }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 overscroll-contain">
             <div
                 className="bg-white w-full sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-center duration-300"
             >

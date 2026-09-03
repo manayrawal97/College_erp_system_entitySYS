@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { authApi } from '../../services/api';
 import toast from 'react-hot-toast';
 import NewPasswordForm from '../common/NewPasswordForm';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
+    useBodyScrollLock(isOpen);
     const [loading, setLoading] = useState(false);
 
     const handleChangePassword = async (formData) => {
@@ -33,7 +35,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 overscroll-contain">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -48,7 +50,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
                     >
                         {/* Header */}
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">

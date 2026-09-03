@@ -66,7 +66,7 @@ const StudentDashboard = () => {
 
         socketRef.current.on('new_notice', (newNotice) => {
             setNotices(prev => [newNotice, ...prev]);
-            toast('New Announcement!', { icon: '🔔' });
+            toast.success('New Announcement Received!');
         });
 
         socketRef.current.on('notice_updated', (updatedData) => {

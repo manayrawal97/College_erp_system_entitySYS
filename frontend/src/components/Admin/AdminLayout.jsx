@@ -41,7 +41,7 @@ const AdminLayout = ({ children }) => {
             {/* Sidebar Overlay (Mobile) */}
             {!isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden overscroll-contain"
                     onClick={() => setIsSidebarOpen(true)}
                 ></div>
             )}
@@ -49,11 +49,11 @@ const AdminLayout = ({ children }) => {
             {/* Sidebar */}
             <aside
                 className={`
- fixed inset-y-0 left-0 z-50 lg:relative
- ${isSidebarOpen ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-[280px] lg:w-64'}
- transition-all duration-300 ease-in-out
- bg-white border-r border-gray-100 flex flex-col shadow-[1px_0_10px_rgba(0,0,0,0.01)]
- `}
+                    fixed inset-y-0 left-0 z-50 lg:relative
+                    ${isSidebarOpen ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-[280px] lg:w-64'}
+                    transition-all duration-300 ease-in-out
+                    bg-white border-r border-gray-100 flex flex-col shadow-[1px_0_10px_rgba(0,0,0,0.01)] overflow-x-hidden
+                `}
             >
                 {/* Sidebar Header */}
                 <div className={`flex border-b border-gray-100 transition-all duration-300 ease-in-out ${
@@ -64,6 +64,7 @@ const AdminLayout = ({ children }) => {
                     {/* Logo Block */}
                     <Link 
                         to="/admin/dashboard"
+                        title={isSidebarOpen ? "EntitySYS Admin" : undefined}
                         className={`flex items-center cursor-pointer transition-all duration-300 ease-in-out ${
                             isSidebarOpen ? 'flex-col justify-center' : 'gap-3 pl-2'
                         }`}
@@ -74,14 +75,12 @@ const AdminLayout = ({ children }) => {
                             E
                         </div>
                         {/* Logo Text */}
-                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
-                            isSidebarOpen 
-                                ? 'max-w-0 opacity-0 pointer-events-none' 
-                                : 'max-w-[180px] opacity-100'
-                        }`}>
-                            <span className="text-lg font-bold text-gray-900 leading-tight whitespace-nowrap tracking-tight">EntitySYS</span>
-                            <span className="text-[10px] font-semibold text-gray-400 tracking-wider leading-none mt-0.5 whitespace-nowrap">Admin Panel</span>
-                        </div>
+                        {!isSidebarOpen && (
+                            <div className="flex flex-col transition-all duration-300 ease-in-out overflow-hidden max-w-[180px] opacity-100">
+                                <span className="text-lg font-bold text-gray-900 leading-tight whitespace-nowrap tracking-tight">EntitySYS</span>
+                                <span className="text-[10px] font-semibold text-gray-400 tracking-wider leading-none mt-0.5 whitespace-nowrap">Admin Panel</span>
+                            </div>
+                        )}
                     </Link>
 
                     {/* Toggle Button */}
@@ -97,21 +96,22 @@ const AdminLayout = ({ children }) => {
                 </div>
 
                 {/* Sidebar Navigation */}
-                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5 custom-scrollbar">
+                <nav className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 space-y-1.5 custom-scrollbar">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             onClick={() => { if (window.innerWidth < 1024) setIsSidebarOpen(true) }}
+                            title={isSidebarOpen ? item.name : undefined}
                             className={({ isActive }) => `
- flex items-center rounded-xl transition-all duration-200 group relative
- ${isSidebarOpen 
+                                flex items-center rounded-xl transition-all duration-200 group relative
+                                ${isSidebarOpen 
                                     ? 'w-11 h-11 justify-center mx-auto p-0' 
                                     : 'w-full p-2.5 px-3.5 gap-3'}
- ${isActive
+                                ${isActive
                                     ? 'bg-primary/[0.05] text-primary font-semibold'
                                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium'}
- `}
+                            `}
                         >
                             {({ isActive }) => (
                                 <>
@@ -122,18 +122,10 @@ const AdminLayout = ({ children }) => {
                                     
                                     <item.icon size={20} className="shrink-0 transition-transform duration-200 group-hover:scale-105" />
                                     
-                                    <span className={`text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
-                                        isSidebarOpen 
-                                            ? 'max-w-0 opacity-0 pointer-events-none' 
-                                            : 'max-w-[200px] opacity-100'
-                                    }`}>
-                                        {item.name}
-                                    </span>
-
-                                    {isSidebarOpen && (
-                                        <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900/95 backdrop-blur-sm text-white text-xs font-semibold rounded-lg shadow-lg border border-gray-800 opacity-0 invisible translate-x-1 group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap z-50">
+                                    {!isSidebarOpen && (
+                                        <span className="text-sm transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap max-w-[200px] opacity-100">
                                             {item.name}
-                                        </div>
+                                        </span>
                                     )}
                                 </>
                             )}
@@ -142,10 +134,11 @@ const AdminLayout = ({ children }) => {
                 </nav>
 
                 {/* Profile & Logout Section at Bottom */}
-                <div className="p-3 border-t border-gray-100 bg-gray-50/30 space-y-1.5">
+                <div className="p-3 border-t border-gray-100 bg-gray-50/30 space-y-1.5 overflow-x-hidden">
                     {/* User Profile Card */}
                     <div 
                         onClick={() => navigate('/profile')}
+                        title={isSidebarOpen ? user?.full_name : undefined}
                         className={`flex items-center rounded-xl hover:bg-gray-100/60 transition-all duration-200 cursor-pointer overflow-hidden ${
                             isSidebarOpen 
                                 ? 'w-11 h-11 justify-center mx-auto p-0' 
@@ -157,19 +150,18 @@ const AdminLayout = ({ children }) => {
                             {user?.full_name?.charAt(0) || 'A'}
                         </div>
                         {/* Info */}
-                        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
-                            isSidebarOpen 
-                                ? 'max-w-0 opacity-0 pointer-events-none' 
-                                : 'max-w-[150px] opacity-100'
-                        }`}>
-                            <span className="text-sm font-semibold text-gray-800 truncate leading-tight">{user?.full_name || 'Admin'}</span>
-                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate leading-none mt-0.5">{user?.role || 'Administrator'}</span>
-                        </div>
+                        {!isSidebarOpen && (
+                            <div className="flex flex-col transition-all duration-300 ease-in-out overflow-hidden max-w-[150px] opacity-100">
+                                <span className="text-sm font-semibold text-gray-800 truncate leading-tight">{user?.full_name || 'Admin'}</span>
+                                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate leading-none mt-0.5">{user?.role || 'Administrator'}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Logout Button */}
                     <button
                         onClick={handleLogout}
+                        title={isSidebarOpen ? 'Logout' : undefined}
                         className={`flex items-center rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200 font-medium cursor-pointer ${
                             isSidebarOpen 
                                 ? 'w-11 h-11 justify-center mx-auto p-0' 
@@ -177,13 +169,11 @@ const AdminLayout = ({ children }) => {
                         }`}
                     >
                         <LogOut size={18} className="shrink-0" />
-                        <span className={`transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap text-sm ${
-                            isSidebarOpen 
-                                ? 'max-w-0 opacity-0 pointer-events-none' 
-                                : 'max-w-[150px] opacity-100'
-                        }`}>
-                            Logout
-                        </span>
+                        {!isSidebarOpen && (
+                            <span className="transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap text-sm max-w-[150px] opacity-100">
+                                Logout
+                            </span>
+                        )}
                     </button>
                 </div>
             </aside>

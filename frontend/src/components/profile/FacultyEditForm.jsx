@@ -1,10 +1,13 @@
 import React from 'react';
+import { User, Phone, GraduationCap } from 'lucide-react';
 
 const FacultyEditForm = ({ formData, setFormData }) => {
     return (
         <div className="space-y-4">
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">👨‍🏫 Full Name</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <User size={14} className="text-primary" /> Full Name
+                </label>
                 <input
                     type="text"
                     required
@@ -14,7 +17,9 @@ const FacultyEditForm = ({ formData, setFormData }) => {
                 />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">📱 Mobile Number</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <Phone size={14} className="text-primary" /> Mobile Number
+                </label>
                 <input
                     type="tel"
                     required
@@ -25,7 +30,9 @@ const FacultyEditForm = ({ formData, setFormData }) => {
                 />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">🎓 Qualification</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <GraduationCap size={14} className="text-primary" /> Qualification
+                </label>
                 <input
                     type="text"
                     required

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiMenuAlt3, HiX, HiChevronDown, HiArrowRight } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    useBodyScrollLock(isOpen);
     const [isScrolled, setIsScrolled] = useState(false);
     const [loginDropdown, setLoginDropdown] = useState(false);
 
@@ -133,7 +135,7 @@ const Navbar = () => {
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
-                        className="fixed inset-0 h-screen w-full bg-primary z-[60] p-8 flex flex-col"
+                        className="fixed inset-0 h-screen w-full bg-primary z-[60] p-8 flex flex-col overscroll-contain"
                     >
                         <div className="flex justify-between items-center mb-16">
                             <span className="text-3xl font-black text-white italic">E-SYS</span>

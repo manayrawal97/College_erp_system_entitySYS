@@ -41,8 +41,8 @@ export const useAttendance = () => {
         if (!socket) return;
 
         const handleAttendanceUpdated = (data) => {
-            console.log('⚡ Attendance updated event received:', data);
-            toast('Attendance records have been updated!', { icon: '📝' });
+            console.log('Attendance updated event received:', data);
+            toast.success('Attendance records have been updated!');
             fetchAttendance();
         };
 

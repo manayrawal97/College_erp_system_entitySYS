@@ -1,10 +1,13 @@
 import React from 'react';
+import { User, Phone, Users, MapPin } from 'lucide-react';
 
 const StudentEditForm = ({ formData, setFormData }) => {
     return (
         <div className="space-y-4">
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">👨‍🎓 Full Name</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <User size={14} className="text-primary" /> Full Name
+                </label>
                 <input
                     type="text"
                     required
@@ -14,7 +17,9 @@ const StudentEditForm = ({ formData, setFormData }) => {
                 />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">📱 Mobile Number</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <Phone size={14} className="text-primary" /> Mobile Number
+                </label>
                 <input
                     type="tel"
                     required
@@ -25,7 +30,9 @@ const StudentEditForm = ({ formData, setFormData }) => {
                 />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">👨‍👩‍👦 Parent Phone</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <Users size={14} className="text-primary" /> Parent Phone
+                </label>
                 <input
                     type="tel"
                     value={formData.parent_phone || ''}
@@ -35,7 +42,9 @@ const StudentEditForm = ({ formData, setFormData }) => {
                 />
             </div>
             <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">📍 Permanent Address</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                    <MapPin size={14} className="text-primary" /> Permanent Address
+                </label>
                 <textarea
                     value={formData.address || ''}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}

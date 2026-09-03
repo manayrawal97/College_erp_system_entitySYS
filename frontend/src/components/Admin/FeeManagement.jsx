@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { CreditCard, Download, CheckCircle, Clock, AlertCircle, Plus, Trash2, X } from 'lucide-react';
+import { CreditCard, Download, CheckCircle, Clock, AlertCircle, Plus, Trash2, X, Search } from 'lucide-react';
 import { feesApi, usersApi } from '../../services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const FeeManagement = ({ isDashboard = false }) => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [filterStatus, setFilterStatus] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [students, setStudents] = useState([]);
 
     // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    useBodyScrollLock(isAddModalOpen);
 
     // Form states
     const [txForm, setTxForm] = useState({
@@ -126,11 +129,18 @@ const FeeManagement = ({ isDashboard = false }) => {
         }
     };
 
-    const displayedTransactions = isDashboard ? transactions.slice(0, 5) : transactions;
+    const filteredTransactions = transactions.filter(tx =>
+        tx.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tx.enrollment_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tx.fee_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tx.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(tx.amount).includes(searchQuery)
+    );
+    const displayedTransactions = isDashboard ? filteredTransactions.slice(0, 5) : filteredTransactions;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     <CreditCard className="text-primary" />
                     Fee Management
@@ -141,6 +151,16 @@ const FeeManagement = ({ isDashboard = false }) => {
                     </Link>
                 ) : (
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div className="relative flex-1 sm:w-64">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search student, ID, fee..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm min-h-[44px] text-gray-900"
+                            />
+                        </div>
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
@@ -153,7 +173,7 @@ const FeeManagement = ({ isDashboard = false }) => {
                         </select>
                         <button 
                             onClick={handleOpenAddTx}
-                            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px] cursor-pointer"
+                            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px] cursor-pointer whitespace-nowrap"
                         >
                             <Plus size={18} />
                             Add Transaction
@@ -182,7 +202,7 @@ const FeeManagement = ({ isDashboard = false }) => {
                                 </tr>
                             ))
                         ) : displayedTransactions.length === 0 ? (
-                            <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500 font-medium">No transactions found.</td></tr>
+                            <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500 font-medium">{searchQuery ? `No transactions found matching "${searchQuery}".` : 'No transactions found.'}</td></tr>
                         ) : (
                             displayedTransactions.map((tx) => (
                                 <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
@@ -245,6 +265,10 @@ const FeeManagement = ({ isDashboard = false }) => {
                         [...Array(2)].map((_, i) => (
                             <div key={i} className="h-40 bg-gray-50 rounded-2xl animate-pulse"></div>
                         ))
+                    ) : displayedTransactions.length === 0 ? (
+                        <div className="py-8 text-center text-gray-500 font-medium">
+                            {searchQuery ? `No transactions found matching "${searchQuery}".` : 'No transactions found.'}
+                        </div>
                     ) : displayedTransactions.map((tx) => (
                         <div key={tx.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
                             <div className="flex items-start justify-between gap-4">
@@ -305,8 +329,8 @@ const FeeManagement = ({ isDashboard = false }) => {
 
             {/* Add Transaction Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 overscroll-contain">
+                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-gray-900">Add Fee Transaction</h3>
                             <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">

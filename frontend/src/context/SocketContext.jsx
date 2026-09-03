@@ -25,7 +25,7 @@ export const SocketProvider = ({ children }) => {
         });
 
         newSocket.on('connect', () => {
-            console.log('🔌 Socket connected in Context:', newSocket.id);
+            console.log('Socket connected in Context:', newSocket.id);
             // Join user-specific room and role/dept rooms
             newSocket.emit('join_room', {
                 user_id: user.id,

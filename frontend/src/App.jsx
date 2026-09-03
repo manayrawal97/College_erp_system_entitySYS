@@ -1,7 +1,11 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { forceUnlockBodyScroll } from "./hooks/useBodyScrollLock";
 import LandingPage from "./Pages/Landing/LandingPage";
+import FeatureDetailPage from "./Pages/Landing/FeatureDetailPage";
+import MenuDetailPage from "./Pages/Landing/MenuDetailPage";
 import LoginPage from "./Pages/Auth/LoginPage";
 import RegisterPage from "./Pages/Auth/RegisterPage";
 import ForgotPasswordPage from "./Pages/Auth/ForgotPasswordPage";
@@ -31,6 +35,12 @@ const PlaceholderPage = ({ title }) => (
 );
 
 const App = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+        forceUnlockBodyScroll();
+    }, [location.pathname]);
+
     return (
         <AuthProvider>
             <SocketProvider>
@@ -50,10 +60,45 @@ const App = () => {
                         <Route path="/faculty-login" element={<LoginPage />} />
                         <Route path="/admin-login" element={<LoginPage />} />
 
-                        {/* Content Routes */}
-                        <Route path="/about" element={<PlaceholderPage title="About" />} />
-                        <Route path="/students" element={<PlaceholderPage title="Students" />} />
-                        <Route path="/faculty" element={<PlaceholderPage title="Faculty" />} />
+                        {/* Content & Feature Detail Routes */}
+                        <Route path="/about" element={<MenuDetailPage />} />
+                        <Route path="/students" element={<FeatureDetailPage />} />
+                        <Route path="/faculty" element={<FeatureDetailPage />} />
+                        <Route path="/admin-demo" element={<FeatureDetailPage />} />
+                        <Route path="/campuses" element={<FeatureDetailPage />} />
+                        <Route path="/courses" element={<FeatureDetailPage />} />
+                        <Route path="/placements" element={<FeatureDetailPage />} />
+                        <Route path="/active-students" element={<FeatureDetailPage />} />
+                        <Route path="/faculty-experts" element={<FeatureDetailPage />} />
+                        <Route path="/smart-ai" element={<FeatureDetailPage />} />
+                        <Route path="/regional-campuses" element={<FeatureDetailPage />} />
+                        <Route path="/programs" element={<FeatureDetailPage />} />
+                        <Route path="/placement-rate" element={<FeatureDetailPage />} />
+                        <Route path="/feature/:key" element={<FeatureDetailPage />} />
+
+                        {/* Dropdown Navigation Routes */}
+                        <Route path="/about-overview" element={<MenuDetailPage />} />
+                        <Route path="/leadership" element={<MenuDetailPage />} />
+                        <Route path="/heritage" element={<MenuDetailPage />} />
+                        <Route path="/location-contact" element={<MenuDetailPage />} />
+                        <Route path="/departments" element={<MenuDetailPage />} />
+                        <Route path="/degree-programs" element={<MenuDetailPage />} />
+                        <Route path="/asc-portal" element={<MenuDetailPage />} />
+                        <Route path="/central-library" element={<MenuDetailPage />} />
+                        <Route path="/ug-admissions" element={<MenuDetailPage />} />
+                        <Route path="/pg-admissions" element={<MenuDetailPage />} />
+                        <Route path="/phd-admissions" element={<MenuDetailPage />} />
+                        <Route path="/fees-scholarships" element={<MenuDetailPage />} />
+                        <Route path="/ircc-research" element={<MenuDetailPage />} />
+                        <Route path="/sine-incubator" element={<MenuDetailPage />} />
+                        <Route path="/research-park" element={<MenuDetailPage />} />
+                        <Route path="/monash-academy" element={<MenuDetailPage />} />
+                        <Route path="/placement-office" element={<MenuDetailPage />} />
+                        <Route path="/hostels-facilities" element={<MenuDetailPage />} />
+                        <Route path="/festivals-events" element={<MenuDetailPage />} />
+                        <Route path="/student-gymkhana" element={<MenuDetailPage />} />
+                        <Route path="/menu/:itemPath" element={<MenuDetailPage />} />
+
                         <Route path="/career" element={<PlaceholderPage title="Career" />} />
                         <Route path="/alumni" element={<PlaceholderPage title="Alumni" />} />
                         <Route path="/contact" element={<PlaceholderPage title="Contact Us" />} />

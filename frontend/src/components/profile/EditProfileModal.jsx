@@ -5,8 +5,10 @@ import StudentEditForm from './StudentEditForm';
 import FacultyEditForm from './FacultyEditForm';
 import { usersApi } from '../../services/api';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const EditProfileModal = ({ isOpen, onClose, userData, onRefresh }) => {
+    useBodyScrollLock(isOpen);
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',
@@ -62,7 +64,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onRefresh }) => {
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 overscroll-contain">
                 {/* Backdrop overlay */}
                 <motion.div
                     initial={{ opacity: 0 }}

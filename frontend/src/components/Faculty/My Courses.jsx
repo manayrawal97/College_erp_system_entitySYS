@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { BookOpen, Users, GraduationCap, CalendarCheck, Bell, X, Mail, Phone, ExternalLink } from 'lucide-react';
 import { coursesApi } from '../../services/api';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const MyCourses = ({ courses, setActiveSection, selectedCourseId, setSelectedCourseId }) => {
     const [viewStudentsModal, setViewStudentsModal] = useState(null); // holds course object if open
+    useBodyScrollLock(Boolean(viewStudentsModal));
     const [students, setStudents] = useState([]);
     const [loadingStudents, setLoadingStudents] = useState(false);
 
@@ -110,7 +112,7 @@ const MyCourses = ({ courses, setActiveSection, selectedCourseId, setSelectedCou
 
             {/* Students List Modal */}
             {viewStudentsModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4 backdrop-blur-sm animate-in fade-in duration-200 overscroll-contain">
                     <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
                         <div className="px-6 py-4 bg-primary text-white flex justify-between items-center">
                             <div>

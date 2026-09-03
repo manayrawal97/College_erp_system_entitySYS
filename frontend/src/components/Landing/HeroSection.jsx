@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { HiPlay, HiArrowRight, HiShieldCheck, HiLightningBolt } from 'react-icons/hi';
+import heroStudentsImg from '../../assets/hero-students.jpg';
 
 const HeroSection = () => {
     const scrollToInquiry = () => {
@@ -97,9 +98,12 @@ const HeroSection = () => {
                         >
                             <div className="relative rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-white/50 glass">
                                 <img
-                                    src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3"
-                                    alt="University Students"
-                                    className="w-full h-auto object-cover hover:scale-110 transition-transform duration-1000"
+                                    src={heroStudentsImg}
+                                    onError={(e) => {
+                                        e.currentTarget.src = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80";
+                                    }}
+                                    alt="University Students & Campus"
+                                    className="w-full h-48 sm:h-64 md:h-80 lg:h-[420px] w-full object-cover hover:scale-105 transition-transform duration-1000"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
                             </div>

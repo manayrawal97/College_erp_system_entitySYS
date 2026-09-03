@@ -11,7 +11,10 @@ import {
     UserX,
     CheckCircle,
     Download,
-    Upload
+    Upload,
+    GraduationCap,
+    Briefcase,
+    ShieldAlert
 } from 'lucide-react';
 import { usersApi } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -92,11 +95,11 @@ const UserManagement = ({ isDashboard = false }) => {
     };
 
     const tabs = [
-        { id: 'all', label: 'All Users', icon: '📋' },
-        { id: 'student', label: 'Students', icon: '🎓' },
-        { id: 'faculty', label: 'Faculty', icon: '👨‍🏫' },
-        { id: 'admin', label: 'Admins', icon: '👑' },
-        { id: 'inactive', label: 'Inactive', icon: '🚫' },
+        { id: 'all', label: 'All Users', icon: Users },
+        { id: 'student', label: 'Students', icon: GraduationCap },
+        { id: 'faculty', label: 'Faculty', icon: Briefcase },
+        { id: 'admin', label: 'Admins', icon: ShieldAlert },
+        { id: 'inactive', label: 'Inactive', icon: UserX },
     ];
 
     useEffect(() => {
@@ -210,7 +213,7 @@ const UserManagement = ({ isDashboard = false }) => {
                                             : 'text-gray-500 hover:text-gray-800 '}
                                     `}
                                 >
-                                    <span>{tab.icon}</span>
+                                    <tab.icon size={16} className={`shrink-0 ${activeTab === tab.id ? 'text-primary' : 'text-gray-400'}`} />
                                     {tab.label}
                                 </button>
                             ))}

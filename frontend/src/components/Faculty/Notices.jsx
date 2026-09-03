@@ -41,7 +41,7 @@ const Notices = ({ courses, socketRef }) => {
                     if (prev.find(n => n.id === notice.id)) return prev;
                     return [notice, ...prev];
                 });
-                toast('New Announcement Posted!', { icon: '📢' });
+                toast.success('New Announcement Posted!');
             });
 
             socket.on('notice_pinned_status', (data) => {
@@ -333,7 +333,7 @@ const Notices = ({ courses, socketRef }) => {
                                 <div className="pr-12">
                                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors flex items-center gap-2">
                                         {notice.title}
-                                        {notice.is_pinned && <Pin size={14} className="text-primary fill-primary" />}
+                                        {Boolean(notice.is_pinned) && <Pin size={14} className="text-primary fill-primary" />}
                                     </h3>
                                     <div className="flex flex-wrap items-center gap-2 mt-1">
                                         {notice.course_code && (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, User, X, FileBadge, Download } from 'lucide-react';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const StudentNoticeModal = ({
     selectedNotice,
@@ -9,10 +10,12 @@ const StudentNoticeModal = ({
     getRelativeTime,
     backendUrl
 }) => {
+    useBodyScrollLock(Boolean(selectedNotice));
+
     return (
         <AnimatePresence>
             {selectedNotice && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 overscroll-contain">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -24,9 +27,9 @@ const StudentNoticeModal = ({
                         initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                        className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100"
+                        className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 max-h-[90vh] flex flex-col"
                     >
-                        <div className="p-8 md:p-12">
+                        <div className="p-8 md:p-12 overflow-y-auto flex-1 custom-scrollbar">
                             <div className="flex justify-between items-start mb-8">
                                 <div className="space-y-4">
                                     <span className="px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-black uppercase tracking-[0.2em]">

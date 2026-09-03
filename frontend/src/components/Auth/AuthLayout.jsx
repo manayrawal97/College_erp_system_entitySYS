@@ -1,4 +1,6 @@
+import React from 'react';
 import { motion } from 'framer-motion';
+import AuthIllustration from './AuthIllustration';
 
 const AuthLayout = ({ children, title, subtitle, illustration }) => {
     return (
@@ -23,14 +25,35 @@ const AuthLayout = ({ children, title, subtitle, illustration }) => {
                 </motion.div>
 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                    <motion.img
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        src={illustration}
-                        alt="Illustration"
-                        className="w-full max-w-md h-auto mb-12 animate-float"
-                    />
+                    {React.isValidElement(illustration) ? (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="w-full max-w-md mb-8 animate-float flex justify-center"
+                        >
+                            {illustration}
+                        </motion.div>
+                    ) : typeof illustration === 'string' && illustration.length > 0 ? (
+                        <motion.img
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            src={illustration}
+                            alt="Illustration"
+                            className="w-full max-w-md h-auto mb-8 animate-float"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="w-full max-w-md mb-8 animate-float flex justify-center"
+                        >
+                            <AuthIllustration type="register" />
+                        </motion.div>
+                    )}
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

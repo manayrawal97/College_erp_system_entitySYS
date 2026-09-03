@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { ipKeyGenerator } = require('express-rate-limit');
 
 /**
  * Reusable key generator for express-rate-limit.
@@ -18,7 +19,7 @@ const rateLimitKeyGenerator = (req) => {
       // Gracefully fall back to IP if token is invalid or expired
     }
   }
-  return req.ip;
+  return ipKeyGenerator(req.ip);
 };
 
 module.exports = {

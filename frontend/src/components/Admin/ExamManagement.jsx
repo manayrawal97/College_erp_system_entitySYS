@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Plus, Calendar, Award, Trash2, Edit2, X, Check, Save } from 'lucide-react';
+import { FileText, Plus, Calendar, Award, Trash2, Edit2, X, Check, Save, Search } from 'lucide-react';
 import { gradesApi, coursesApi } from '../../services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const ExamManagement = ({ isDashboard = false }) => {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(false);
     const [courses, setCourses] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Modal states
     const [isExamModalOpen, setIsExamModalOpen] = useState(false);
     const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
+    useBodyScrollLock(isExamModalOpen || isGradeModalOpen);
     const [selectedExam, setSelectedExam] = useState(null);
 
     // Exam form states
@@ -212,11 +215,17 @@ const ExamManagement = ({ isDashboard = false }) => {
         }
     };
 
-    const displayedExams = isDashboard ? exams.slice(0, 4) : exams;
+    const filteredExams = exams.filter(exam =>
+        exam.exam_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.course_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.course_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.exam_type?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const displayedExams = isDashboard ? filteredExams.slice(0, 4) : filteredExams;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     <FileText className="text-primary" />
                     Exam Management
@@ -226,13 +235,25 @@ const ExamManagement = ({ isDashboard = false }) => {
                         See More Exams →
                     </Link>
                 ) : (
-                    <button 
-                        onClick={handleOpenAddExam}
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px] cursor-pointer"
-                    >
-                        <Plus size={18} />
-                        Create Exam
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div className="relative flex-1 sm:w-64">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search exams or courses..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm min-h-[44px] text-gray-900"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleOpenAddExam}
+                            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm font-bold shadow-lg shadow-primary/20 min-h-[44px] cursor-pointer whitespace-nowrap"
+                        >
+                            <Plus size={18} />
+                            Create Exam
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -258,7 +279,7 @@ const ExamManagement = ({ isDashboard = false }) => {
                         ) : displayedExams.length === 0 ? (
                             <tr>
                                 <td colSpan="6" className="px-6 py-12 text-center text-gray-500 font-medium">
-                                    No exams scheduled.
+                                    {searchQuery ? `No exams found matching "${searchQuery}".` : 'No exams scheduled.'}
                                 </td>
                             </tr>
                         ) : (
@@ -324,6 +345,10 @@ const ExamManagement = ({ isDashboard = false }) => {
                         [...Array(2)].map((_, i) => (
                             <div key={i} className="h-40 bg-gray-50 rounded-2xl animate-pulse"></div>
                         ))
+                    ) : displayedExams.length === 0 ? (
+                        <div className="py-8 text-center text-gray-500 font-medium">
+                            {searchQuery ? `No exams found matching "${searchQuery}".` : 'No exams scheduled.'}
+                        </div>
                     ) : displayedExams.map((exam) => (
                         <div key={exam.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
                             <div className="flex items-start justify-between gap-4">
@@ -391,8 +416,8 @@ const ExamManagement = ({ isDashboard = false }) => {
 
             {/* Create/Edit Exam Modal */}
             {isExamModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 overscroll-contain">
+                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-gray-900">{selectedExam ? 'Edit Exam Schedule' : 'Create Exam'}</h3>
                             <button onClick={() => setIsExamModalOpen(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -481,7 +506,7 @@ const ExamManagement = ({ isDashboard = false }) => {
 
             {/* Manage Grades Modal */}
             {isGradeModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 overscroll-contain">
                     <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
                         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <div>

@@ -2,12 +2,15 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { X, LogOut } from 'lucide-react';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const StudentMobileMenu = ({
     isMobileMenuOpen,
     setIsMobileMenuOpen,
     handleLogout
 }) => {
+    useBodyScrollLock(isMobileMenuOpen);
+
     return (
         <AnimatePresence>
             {isMobileMenuOpen && (
@@ -17,14 +20,14 @@ const StudentMobileMenu = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="fixed inset-0 z-[120] bg-navy/60 backdrop-blur-sm lg:hidden"
+                        className="fixed inset-0 z-[120] bg-navy/60 backdrop-blur-sm lg:hidden overscroll-contain"
                     />
                     <motion.div
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed top-0 left-0 bottom-0 z-[130] w-80 bg-white p-8 lg:hidden overflow-y-auto"
+                        className="fixed top-0 left-0 bottom-0 z-[130] w-80 bg-white p-8 lg:hidden overflow-y-auto overscroll-contain"
                     >
                         <div className="flex justify-between items-center mb-12">
                             <div className="flex items-center space-x-2">
